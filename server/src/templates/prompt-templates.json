@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "templates": [
+    {
+      "platform": "jimeng",
+      "version": 1,
+      "shot": "{shotSize}镜头，{scene}[。画面人物：{characters}][。人物台词：“{dialogue}”]。电影感，光影细腻，画面稳定",
+      "character": "{name}[，{appearance}][，身穿{outfit}]",
+      "separator": "；"
+    },
+    {
+      "platform": "kling",
+      "version": 1,
+      "shot": "{scene}，{shotSize}[，出场人物：{characters}][，人物说：“{dialogue}”]，镜头运动自然，高清画质",
+      "character": "{name}[，{appearance}][，穿着{outfit}]",
+      "separator": "；"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+targets:
+  $default:
+    builders:
+      drift_dev:
+        options:
+          # 时间存成 ISO 字符串，以后做云同步时和服务端对齐更直观
+          store_date_time_values_as_text: true

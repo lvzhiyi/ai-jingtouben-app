@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.5'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: dart run build_runner build --delete-conflicting-outputs
+      - name: Format
+        run: dart format --output=none --set-exit-if-changed $(git ls-files 'lib/*.dart' 'test/*.dart' | grep -v '\.g\.dart$')
+      - run: flutter analyze
+      - run: flutter test --coverage
+      - name: Coverage
+        run: |
+          awk -F: '/^LF:/{lf+=$2} /^LH:/{lh+=$2} END{printf "Line coverage: %.1f%% (%d/%d)\n", lh*100/lf, lh, lf}' coverage/lcov.info | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-coverage
+          path: app/coverage/lcov.info
+
+  server:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install
+        run: if [ -f package-lock.json ]; then npm ci; else npm install; fi
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  templates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 客户端内置模板与服务端模板一致
+        run: diff app/assets/prompt_templates.json server/src/templates/prompt-templates.json

@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "app（本机服务）",
+      "cwd": "app",
+      "request": "launch",
+      "type": "dart",
+      "args": ["--dart-define=API_BASE_URL=http://localhost:3000/"]
+    },
+    {
+      "name": "app（Android 模拟器）",
+      "cwd": "app",
+      "request": "launch",
+      "type": "dart",
+      "args": ["--dart-define=API_BASE_URL=http://10.0.2.2:3000/"]
+    }
+  ]
+}

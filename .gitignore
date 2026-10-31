@@ -1,0 +1,16 @@
+.DS_Store
+.idea/
+*.iml
+
+# Flutter（flutter create 还会在 app/ 下生成自己的 .gitignore）
+app/.dart_tool/
+app/build/
+app/coverage/
+app/.flutter-plugins-dependencies
+
+# Server
+server/node_modules/
+server/dist/
+server/coverage/
+server/.env
+server/tsconfig.tsbuildinfo
