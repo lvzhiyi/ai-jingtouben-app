@@ -37,7 +37,7 @@
 ## 冲刺进度（10/29–11/11，每推进一步更新这里）
 
 - [x] 10/29 定位 + 一页技术方案（docs/architecture.md）
-- [~] 10/30 骨架、CI、转发服务：代码已写，但还没在本机跑过——`app/` 下还没执行 `flutter create .`（缺 android/ios/web 和 pubspec.lock），server 没装依赖，仓库还不是 git 仓库
+- [~] 10/30 骨架、CI、转发服务：代码已写，但还没在本机跑过——`app/` 下还没执行 `flutter create .`（缺 android/ios/web 和 pubspec.lock），server 没装依赖；仓库已 git init 并推到 GitHub（lvzhiyi/ai-jingtouben-app）
 - [~] 10/31 流式生成分镜：SSE 解码、拼行、逐行解析和分镜页已写，首字延迟待实测
 - [ ] 11/1 增量渲染 + 性能基线
 - [~] 11/2 数据模型 + 本地存储：drift 表和仓库已写（schemaVersion 1）
@@ -49,4 +49,4 @@
 - [ ] 11/8 README、演示视频、APK、Web 版
 - [ ] 11/9–11/11 简历、模拟面试、投递
 
-下一步：按 README「本地运行」把 app 和 server 跑起来，跑通「验证」命令，`git init` 并推到 GitHub 让 CI 跑一次。
+下一步：按 README「本地运行」把 app 和 server 跑起来，跑通「验证」命令，看 GitHub 上 CI 首次运行结果。
