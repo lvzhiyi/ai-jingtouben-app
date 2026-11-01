@@ -58,12 +58,22 @@ cd app && dart format lib test && flutter analyze && flutter test
 cd server && npm run typecheck && npm test
 ```
 
+### 性能基线
+
+在真实页面上回放一次固定的流式生成（20 个镜头、每 25 ms 一个增量，不连网络和模型），再来回滑动列表，记录帧耗时。需要接一台真机或模拟器，用 profile 模式：
+
+```bash
+cd app && flutter drive --profile --no-dds --driver=test_driver/perf_driver.dart --target=integration_test/storyboard_perf_test.dart
+```
+
+结果写到 `app/build/storyboard_perf.json`（`storyboard_streaming` 是生成过程，`shot_list_scroll` 是滑动）。`--no-dds` 不能省，否则测试连不上 VM Service。
+
 ## 要记录的数字
 
 | 指标 | 怎么测 | 结果 |
 | --- | --- | --- |
 | 首字延迟 | 分镜页状态行直接显示（发出请求到第一个字） | 待测 |
-| 流式帧耗时 / 掉帧数 | DevTools，优化前后各一次 | 待测 |
+| 流式帧耗时 / 掉帧数 | 「性能基线」测试 + DevTools，优化前后各一次 | 基线（11/1，Android 模拟器 API 37，profile，跑 2 次）：生成过程 UI 线程构建平均 1.5–1.7 ms、P90 2.6–2.8 ms、P99 23–25 ms，构建超 16 ms 的帧 5–6 / 338–366；滑动构建平均 2.1 ms、P99 24–38 ms。模拟器光栅化平均 65–144 ms，靠软件模拟 GPU，不作数。真机待测 |
 | 结构化输出一次解析成功率 | 20 个故事样本，`ParsedShot.repaired == false` 的比例 | 待测 |
 | 测试覆盖率 | CI 的 Coverage 步骤 | 待测 |
 

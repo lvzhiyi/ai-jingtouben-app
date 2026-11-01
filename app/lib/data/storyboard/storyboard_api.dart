@@ -38,6 +38,17 @@ final class ShotLineArrived extends GenerationUpdate {
   List<Object?> get props => [result];
 }
 
+/// 正在生成的那一行有了新内容：已经写出来的字段，用于增量渲染。
+/// 内容和上一次相同时不会重复发出。
+final class ShotDrafting extends GenerationUpdate {
+  const ShotDrafting(this.shot);
+
+  final PartialShot shot;
+
+  @override
+  List<Object?> get props => [shot];
+}
+
 final class GenerationCompleted extends GenerationUpdate {
   const GenerationCompleted();
 }
@@ -106,6 +117,7 @@ class StoryboardApi {
     final lines = LineAccumulator();
     var index = 0;
     var receivedText = false;
+    PartialShot? drafting;
 
     ShotLineArrived? toUpdate(String line) {
       final result = _parser.parse(line, index: index);
@@ -130,7 +142,15 @@ class StoryboardApi {
               }
               for (final line in lines.add(text)) {
                 final update = toUpdate(line);
-                if (update != null) yield update;
+                if (update != null) {
+                  drafting = null;
+                  yield update;
+                }
+              }
+              final partial = _parser.parsePartial(lines.pending, index: index);
+              if (partial != null && partial != drafting) {
+                drafting = partial;
+                yield ShotDrafting(partial);
               }
             }
           case 'error':

@@ -71,5 +71,25 @@ void main() {
       final lines = LineAccumulator()..add('{"c":3}');
       expect(lines.flush(), ['{"c":3}']);
     });
+    group('ShotLineParser.parsePartial', () {
+      test('截在字符串中间时读出已经写出来的字段', () {
+        final shot = parser.parsePartial('{"shotSize":"全景","scene":"雨夜的老', index: 3);
+        expect(shot, const PartialShot(index: 3, shotSize: ShotSize.full, scene: '雨夜的老'));
+      });
+
+      test('景别还没写完时为 null，画面为空时不交出', () {
+        expect(parser.parsePartial('{"shotSize":"全', index: 0), isNull);
+        expect(parser.parsePartial('{"shotSize":"全景","sce', index: 0), isNull);
+        expect(
+          parser.parsePartial('{"scene":"街口","shotSize":"近', index: 0),
+          const PartialShot(index: 0, scene: '街口'),
+        );
+      });
+
+      test('空行和代码块标记不交出', () {
+        expect(parser.parsePartial('  ', index: 0), isNull);
+        expect(parser.parsePartial('```js', index: 0), isNull);
+      });
+    });
   });
 }

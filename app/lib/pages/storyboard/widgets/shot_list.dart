@@ -19,7 +19,7 @@ class ShotList extends StatelessWidget {
       builder: (context, state) {
         final items = state.items;
         return SliverPadding(
-          padding: const EdgeInsets.fromLTRB(AppUi.pagePadding, 0, AppUi.pagePadding, 32),
+          padding: const EdgeInsets.fromLTRB(AppUi.pagePadding, 0, AppUi.pagePadding, 12),
           sliver: SliverList.separated(
             itemCount: items.length,
             separatorBuilder: (_, _) => const SizedBox(height: 12),

@@ -23,6 +23,7 @@ class StoryboardState extends Equatable {
     this.story = '',
     this.phase = GenerationPhase.idle,
     this.items = const [],
+    this.drafting,
     this.firstTokenLatency,
     this.error,
   });
@@ -37,6 +38,9 @@ class StoryboardState extends Equatable {
 
   /// 当前展示的镜头。流式过程中逐行追加；坏行留在原位置，提示需要重新生成。
   final List<ShotLineResult> items;
+
+  /// 正在生成、还没写完的下一个镜头；只在生成过程中存在。
+  final PartialShot? drafting;
 
   /// 最近一次生成的首字延迟。
   final Duration? firstTokenLatency;
@@ -56,6 +60,7 @@ class StoryboardState extends Equatable {
     String? story,
     GenerationPhase? phase,
     List<ShotLineResult>? items,
+    PartialShot? Function()? drafting,
     Duration? Function()? firstTokenLatency,
     ApiErrorKind? Function()? error,
   }) => StoryboardState(
@@ -64,10 +69,20 @@ class StoryboardState extends Equatable {
     story: story ?? this.story,
     phase: phase ?? this.phase,
     items: items ?? this.items,
+    drafting: drafting == null ? this.drafting : drafting(),
     firstTokenLatency: firstTokenLatency == null ? this.firstTokenLatency : firstTokenLatency(),
     error: error == null ? this.error : error(),
   );
 
   @override
-  List<Object?> get props => [loaded, title, story, phase, items, firstTokenLatency, error];
+  List<Object?> get props => [
+    loaded,
+    title,
+    story,
+    phase,
+    items,
+    drafting,
+    firstTokenLatency,
+    error,
+  ];
 }
