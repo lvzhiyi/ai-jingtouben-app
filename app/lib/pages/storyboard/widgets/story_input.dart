@@ -29,8 +29,8 @@ class _StoryInputState extends State<StoryInput> {
       maxLength: 3000,
       onChanged: widget.onChanged,
       decoration: const InputDecoration(
-        labelText: '故事',
-        hintText: '用几句话写清楚：谁、在哪里、发生了什么、结局如何',
+        hintStyle: TextStyle(fontSize: 14, height: 1.7),
+        hintText: '故事发生在哪里？谁走进了画面？\n写下人物、冲突和结局，让灵感慢慢展开……',
         alignLabelWithHint: true,
       ),
     );

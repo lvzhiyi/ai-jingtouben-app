@@ -27,7 +27,7 @@ class _JingtoubenAppState extends State<JingtoubenApp> {
     super.dispose();
   }
 
-  /// 把仓库按类型注入组件树，页面用 context.read<T>() 读取，测试时可以替换。
+  /// 把仓库按类型注入组件树，页面用 `context.read<T>()` 读取，测试时可以替换。
   @override
   Widget build(BuildContext context) {
     final dependencies = widget.dependencies;

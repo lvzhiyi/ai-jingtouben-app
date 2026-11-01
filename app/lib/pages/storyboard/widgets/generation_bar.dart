@@ -21,12 +21,9 @@ class GenerationBar extends StatelessWidget {
         final controller = context.read<StoryboardController>();
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppUi.pagePadding, vertical: 12),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: Text(_status(state), style: Theme.of(context).textTheme.bodySmall),
-              ),
-              const SizedBox(width: 12),
               if (state.phase.isActive)
                 OutlinedButton.icon(
                   onPressed: () => controller.add(const GenerationCancelled()),
@@ -41,6 +38,12 @@ class GenerationBar extends StatelessWidget {
                   icon: const Icon(Icons.auto_awesome),
                   label: Text(state.items.isEmpty ? '生成分镜' : '重新生成'),
                 ),
+              const SizedBox(height: 10),
+              Text(
+                _status(state),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             ],
           ),
         );

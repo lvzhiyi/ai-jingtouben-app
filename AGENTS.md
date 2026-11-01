@@ -39,6 +39,7 @@
 - [x] 10/29 定位 + 一页技术方案（docs/architecture.md）
 - [~] 10/30 骨架、CI、转发服务：代码已写，但还没在本机跑过——`app/` 下还没执行 `flutter create .`（缺 android/ios/web 和 pubspec.lock），server 没装依赖；仓库已 git init 并推到 GitHub（lvzhiyi/ai-jingtouben-app）
 - [~] 10/31 流式生成分镜：SSE 解码、拼行、逐行解析和分镜页已写，首字延迟待实测
+- [x] 11/1 UI 视觉改版：参考 iPhone App 的奶油白与浅粉渐变、大圆角卡片和黑色悬浮操作，统一项目首页与分镜工作台；app 静态分析及 24 个测试通过，Android 热重载成功
 - [ ] 11/1 增量渲染 + 性能基线
 - [~] 11/2 数据模型 + 本地存储：drift 表和仓库已写（schemaVersion 1）
 - [~] 11/3 结构化分镜 + 角色卡 + 双平台提示词：提示词模板和拼接已写，角色卡页面未做

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../data/repositories/project_repository.dart';
 import '../../data/repositories/shot_repository.dart';
+import '../../data/storyboard/shot_line_parser.dart';
 import '../../data/storyboard/storyboard_api.dart';
 import '../../net/api_exception.dart';
 import 'state.dart';
@@ -46,13 +47,10 @@ final class GenerationCancelled extends GenerationEvent {
 class StoryboardController extends Bloc<StoryboardEvent, StoryboardState> {
   StoryboardController({
     required this.projectId,
-    required ProjectRepository projects,
-    required ShotRepository shots,
-    required StoryboardApi api,
-  }) : _projects = projects,
-       _shots = shots,
-       _api = api,
-       super(const StoryboardState()) {
+    required this._projects,
+    required this._shots,
+    required this._api,
+  }) : super(const StoryboardState()) {
     on<StoryboardOpened>(_onOpened);
     on<StoryChanged>((event, emit) => emit(state.copyWith(story: event.story)));
     on<GenerationEvent>(_onGeneration, transformer: restartable());

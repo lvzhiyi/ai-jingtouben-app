@@ -38,13 +38,11 @@ class AppDatabase extends _$AppDatabase {
   );
 
   Future<String?> readValue(String key) async {
-    final row = await (select(
-      keyValues,
-    )..where((t) => t.entryKey.equals(key))).getSingleOrNull();
+    final row = await (select(keyValues)..where((t) => t.entryKey.equals(key))).getSingleOrNull();
     return row?.entryValue;
   }
 
-  Future<void> writeValue(String key, String value) => into(
-    keyValues,
-  ).insertOnConflictUpdate(KeyValuesCompanion.insert(entryKey: key, entryValue: value));
+  Future<void> writeValue(String key, String value) =>
+      into(keyValues)
+          .insertOnConflictUpdate(KeyValuesCompanion.insert(entryKey: key, entryValue: value));
 }

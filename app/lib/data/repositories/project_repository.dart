@@ -4,7 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../db/app_database.dart';
 
 class ProjectRepository {
-  ProjectRepository(this._db, {Uuid uuid = const Uuid()}) : _uuid = uuid;
+  ProjectRepository(this._db, {this._uuid = const Uuid()});
 
   final AppDatabase _db;
   final Uuid _uuid;
@@ -29,6 +29,5 @@ class ProjectRepository {
       );
 
   /// 删除项目，角色卡、镜头和生成记录由外键级联删除。
-  Future<void> delete(String id) =>
-      (_db.delete(_db.projects)..where((t) => t.id.equals(id))).go();
+  Future<void> delete(String id) => (_db.delete(_db.projects)..where((t) => t.id.equals(id))).go();
 }

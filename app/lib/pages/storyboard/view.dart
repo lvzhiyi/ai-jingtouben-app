@@ -15,14 +15,26 @@ class StoryboardView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocConsumer<StoryboardController, StoryboardState>(
       listenWhen: (previous, current) => current.error != null && previous.error != current.error,
-      listener: (context, state) => ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(state.error!.message))),
+      listener: (context, state) =>
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.error!.message))),
       // 外层只关心加载和标题；生成过程中的高频更新由下面各自的 BlocBuilder 局部处理。
       buildWhen: (previous, current) =>
           previous.loaded != current.loaded || previous.title != current.title,
       builder: (context, state) => Scaffold(
-        appBar: AppBar(title: Text(state.title.isEmpty ? '分镜' : state.title)),
+        appBar: AppBar(
+          title: Text(state.title.isEmpty ? '分镜' : state.title),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(30),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(
+                '故事 · 分镜工作台',
+                style: Theme.of(context).textTheme.labelMedium
+                    ?.copyWith(color: Theme.of(context).colorScheme.primary),
+              ),
+            ),
+          ),
+        ),
         body: state.loaded
             ? _StoryboardBody(initialStory: state.story)
             : const Center(child: CircularProgressIndicator()),
@@ -47,13 +59,42 @@ class _StoryboardBody extends StatelessWidget {
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(AppUi.pagePadding, 12, AppUi.pagePadding, 0),
               sliver: SliverToBoxAdapter(
-                child: StoryInput(
-                  initialStory: initialStory,
-                  onChanged: (story) => controller.add(StoryChanged(story)),
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.edit_note_rounded,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(width: 8),
+                            Text('故事的起点', style: Theme.of(context).textTheme.titleMedium),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text('先写故事，再让每一幕有迹可循。', style: Theme.of(context).textTheme.bodySmall),
+                        const SizedBox(height: 18),
+                        StoryInput(
+                          initialStory: initialStory,
+                          onChanged: (story) => controller.add(StoryChanged(story)),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
             const SliverToBoxAdapter(child: GenerationBar()),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(AppUi.pagePadding, 12, AppUi.pagePadding, 16),
+              sliver: SliverToBoxAdapter(
+                child: Text('分镜手记', style: Theme.of(context).textTheme.titleLarge),
+              ),
+            ),
             const ShotList(),
           ],
         ),

@@ -52,16 +52,13 @@ final class GenerationCompleted extends GenerationUpdate {
 /// 取消订阅返回的 Stream 即断开连接，服务端随之中止上游模型请求。
 class StoryboardApi {
   StoryboardApi({
-    required http.Client client,
+    required this._client,
     required Uri baseUrl,
-    required Future<String> Function() deviceId,
-    ShotLineParser parser = const ShotLineParser(),
+    required this._deviceId,
+    this._parser = const ShotLineParser(),
     this.connectTimeout = const Duration(seconds: 15),
     this.idleTimeout = const Duration(seconds: 30),
-  }) : _client = client,
-       _endpoint = baseUrl.resolve('storyboard/stream'),
-       _deviceId = deviceId,
-       _parser = parser;
+  }) : _endpoint = baseUrl.resolve('storyboard/stream');
 
   final http.Client _client;
   final Uri _endpoint;

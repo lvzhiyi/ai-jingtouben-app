@@ -15,21 +15,24 @@ class ShotCard extends StatelessWidget {
     final secondary = theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant);
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Text('#${shot.index + 1}', style: theme.textTheme.titleMedium),
-                const SizedBox(width: 8),
+                Text(
+                  '#${shot.index + 1}',
+                  style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                const Spacer(),
                 DecoratedBox(
                   decoration: BoxDecoration(
                     color: scheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     child: Text(
                       shot.shotSize.label,
                       style: theme.textTheme.labelMedium?.copyWith(
@@ -40,7 +43,7 @@ class ShotCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
             Text(shot.scene, style: theme.textTheme.bodyLarge),
             if (shot.dialogue.isNotEmpty) ...[
               const SizedBox(height: 8),

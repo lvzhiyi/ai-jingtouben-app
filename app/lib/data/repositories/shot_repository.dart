@@ -6,7 +6,7 @@ import '../models/shot_draft.dart';
 import '../models/shot_status.dart';
 
 class ShotRepository {
-  ShotRepository(this._db, {Uuid uuid = const Uuid()}) : _uuid = uuid;
+  ShotRepository(this._db, {this._uuid = const Uuid()});
 
   final AppDatabase _db;
   final Uuid _uuid;
@@ -41,10 +41,9 @@ class ShotRepository {
         ShotsCompanion(status: Value(status), updatedAt: Value(DateTime.now())),
       );
 
-  SimpleSelectStatement<$ShotsTable, Shot> _byProject(String projectId) =>
-      _db.select(_db.shots)
-        ..where((t) => t.projectId.equals(projectId))
-        ..orderBy([(t) => OrderingTerm.asc(t.sortOrder)]);
+  SimpleSelectStatement<$ShotsTable, Shot> _byProject(String projectId) => _db.select(_db.shots)
+    ..where((t) => t.projectId.equals(projectId))
+    ..orderBy([(t) => OrderingTerm.asc(t.sortOrder)]);
 }
 
 extension on Shot {

@@ -12,14 +12,12 @@ import 'prompt_template.dart';
 /// 平台写法变化时只改服务端配置，不用发版；断网时用上次缓存，首次离线用内置的同一份文件。
 class TemplateRepository {
   TemplateRepository({
-    required http.Client client,
+    required this._client,
     required Uri baseUrl,
-    required AppDatabase database,
+    required this._database,
     Future<String> Function()? loadBundled,
     this.timeout = const Duration(seconds: 5),
-  }) : _client = client,
-       _endpoint = baseUrl.resolve('templates'),
-       _database = database,
+  }) : _endpoint = baseUrl.resolve('templates'),
        _loadBundled = loadBundled ?? (() => rootBundle.loadString(_bundledAsset));
 
   static const _bundledAsset = 'assets/prompt_templates.json';

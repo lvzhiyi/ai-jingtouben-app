@@ -57,9 +57,7 @@ void main() {
     final bloc = build(
       () => Stream.fromIterable(const [
         FirstTokenArrived(Duration(milliseconds: 420)),
-        ShotLineArrived(
-          ParsedShot(ShotDraft(index: 0, shotSize: ShotSize.full, scene: '雨夜老街')),
-        ),
+        ShotLineArrived(ParsedShot(ShotDraft(index: 0, shotSize: ShotSize.full, scene: '雨夜老街'))),
         GenerationCompleted(),
       ]),
     );
