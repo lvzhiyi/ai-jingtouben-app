@@ -46,3 +46,6 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# tool/coverage.sh 临时生成
+/test/_all_files_test.dart

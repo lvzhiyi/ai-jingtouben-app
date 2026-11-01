@@ -58,6 +58,13 @@ cd app && dart format lib test && flutter analyze && flutter test
 cd server && npm run typecheck && npm test
 ```
 
+覆盖率（CI 同一套口径和门槛）：
+
+```bash
+cd app && MIN_COVERAGE=85 tool/coverage.sh   # 纳入所有 lib 文件，排除生成代码和表定义
+cd server && npm run test:cov                # 门槛在 package.json 的 jest.coverageThreshold
+```
+
 ### 性能基线
 
 在真实页面上回放一次固定的流式生成（20 个镜头、每 25 ms 一个增量，不连网络和模型），再来回滑动列表，记录帧耗时。需要接一台真机或模拟器，用 profile 模式：
@@ -75,7 +82,7 @@ cd app && flutter drive --profile --no-dds --driver=test_driver/perf_driver.dart
 | 首字延迟 | 分镜页状态行直接显示（发出请求到第一个字） | 11/1，本机 server 连真实模型：App（Android 模拟器）3.7–6.1 s；同一段故事绕过 App 直接请求 server 为 5.1–5.5 s，客户端链路几乎不增加耗时，主要取决于模型和故事本身（换一段措辞规整的故事直连只要 2.0–2.9 s） |
 | 流式帧耗时 / 掉帧数 | 「性能基线」测试 + DevTools，优化前后各一次 | 基线（11/1，Android 模拟器 API 37，profile，跑 2 次）：生成过程 UI 线程构建平均 1.5–1.7 ms、P90 2.6–2.8 ms、P99 23–25 ms，构建超 16 ms 的帧 5–6 / 338–366；滑动构建平均 2.1 ms、P99 24–38 ms。模拟器光栅化平均 65–144 ms，靠软件模拟 GPU，不作数。真机待测 |
 | 结构化输出一次解析成功率 | 20 个故事样本，`ParsedShot.repaired == false` 的比例 | 待测 |
-| 测试覆盖率 | CI 的 Coverage 步骤 | 待测 |
+| 测试覆盖率 | CI 的 Test + coverage 步骤（门槛：app 85%，server 行 90% / 分支 75%） | 11/1：app 行覆盖率 92.7%（1039/1121，补测试前按同一口径是 50.1%）；server 行 98.8%、分支 84.1% |
 
 ## 展示方式
 

@@ -190,4 +190,53 @@ void main() {
 
     await bloc.close();
   });
+  test('故事输入停顿后自动保存，连续输入只保存最后一次', () async {
+    final bloc = build(() => const Stream.empty())..add(const StoryboardOpened());
+    await bloc.stream.firstWhere((s) => s.loaded);
+
+    bloc
+      ..add(const StoryChanged('雨夜'))
+      ..add(const StoryChanged('雨夜，老街'));
+    await Future<void>.delayed(StoryboardController.storySaveDelay * 2);
+    expect((await projects.find(projectId))?.story, '雨夜，老街');
+
+    await bloc.close();
+  });
+
+  test('停顿期内离开页面，关闭时补存故事', () async {
+    final bloc = build(() => const Stream.empty())..add(const StoryboardOpened());
+    await bloc.stream.firstWhere((s) => s.loaded);
+
+    bloc.add(const StoryChanged('还没停顿就离开'));
+    await bloc.stream.firstWhere((s) => s.story == '还没停顿就离开');
+    await bloc.close();
+
+    expect((await projects.find(projectId))?.story, '还没停顿就离开');
+  });
+  test('模板加载期间输入的故事不会被加载结果覆盖', () async {
+    final bloc = StoryboardController(
+      projectId: projectId,
+      projects: projects,
+      shots: shots,
+      characters: characters,
+      templates: TemplateRepository(
+        // 服务端很慢，加载期间用户已经开始输入
+        client: MockClient((_) async {
+          await Future<void>.delayed(const Duration(milliseconds: 200));
+          return http.Response('', 503);
+        }),
+        baseUrl: Uri.parse('http://localhost:3000/'),
+        database: db,
+        loadBundled: () async => _bundledTemplates,
+      ),
+      api: _FakeApi(() => const Stream.empty()),
+    )..add(const StoryboardOpened());
+    await bloc.stream.firstWhere((s) => s.loaded);
+
+    bloc.add(const StoryChanged('加载期间输入'));
+    final loaded = await bloc.stream.firstWhere((s) => s.templates != null);
+    expect(loaded.story, '加载期间输入');
+
+    await bloc.close();
+  });
 }

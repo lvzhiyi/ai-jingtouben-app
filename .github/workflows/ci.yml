@@ -28,14 +28,23 @@ jobs:
       - name: Format
         run: dart format --output=none --set-exit-if-changed $(git ls-files 'lib/*.dart' 'test/*.dart' | grep -v '\.g\.dart$')
       - run: flutter analyze
-      - run: flutter test --coverage
-      - name: Coverage
+      # 跑全部测试并统计覆盖率：口径见脚本注释（纳入没被测试 import 的文件，排除生成代码）
+      - name: Test + coverage
+        run: tool/coverage.sh
+        env:
+          MIN_COVERAGE: '85'
+      - name: Coverage summary
+        if: always()
         run: |
-          awk -F: '/^LF:/{lf+=$2} /^LH:/{lh+=$2} END{printf "Line coverage: %.1f%% (%d/%d)\n", lh*100/lf, lh, lf}' coverage/lcov.info | tee -a "$GITHUB_STEP_SUMMARY"
+          echo '### App 覆盖率' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat coverage/summary.txt >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: app-coverage
-          path: app/coverage/lcov.info
+          path: app/coverage/lcov.filtered.info
 
   server:
     runs-on: ubuntu-latest
@@ -51,7 +60,17 @@ jobs:
       - name: Install
         run: if [ -f package-lock.json ]; then npm ci; else npm install; fi
       - run: npm run typecheck
-      - run: npm test
+      # 门槛在 package.json 的 jest.coverageThreshold，低于门槛时 jest 以非零退出
+      - name: Test + coverage
+        shell: bash
+        run: npm run test:cov 2>&1 | tee coverage.log
+      - name: Coverage summary
+        if: always()
+        run: |
+          echo '### Server 覆盖率' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          sed -n '/Coverage summary/,/^Lines/p' coverage.log >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
       - run: npm run build
 
   templates:
