@@ -30,6 +30,7 @@ dev_dependencies:
   build_runner: ^2.5.0
   drift_dev: ^2.35.0
   flutter_lints: ^6.0.0
+  pigeon: ^29.1.0
 
 flutter:
   uses-material-design: true

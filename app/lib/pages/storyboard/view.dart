@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../resources/theme.dart';
+import '../../data/share/storyboard_share.dart';
+import 'widgets/share_button.dart';
 import 'controller.dart';
 import 'state.dart';
 import 'widgets/drafting_shot.dart';
@@ -11,7 +13,9 @@ import 'widgets/shot_list.dart';
 import 'widgets/story_input.dart';
 
 class StoryboardView extends StatelessWidget {
-  const StoryboardView({super.key});
+  const StoryboardView({super.key, required this.share});
+
+  final StoryboardShare share;
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +30,7 @@ class StoryboardView extends StatelessWidget {
         appBar: AppBar(
           title: Text(state.title.isEmpty ? '分镜' : state.title),
           actions: [
+            ShareButton(share: share),
             IconButton(
               tooltip: '角色卡',
               icon: const Icon(Icons.people_alt_outlined),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../data/prompt/template_repository.dart';
+import '../../data/share/storyboard_share.dart';
 import '../../data/repositories/character_repository.dart';
 import '../../data/repositories/project_repository.dart';
 import '../../data/repositories/shot_repository.dart';
@@ -25,6 +26,6 @@ class StoryboardPage extends StatelessWidget {
       templates: context.read<TemplateRepository>(),
       api: context.read<StoryboardApi>(),
     )..add(const StoryboardOpened()),
-    child: const StoryboardView(),
+    child: StoryboardView(share: StoryboardShare()),
   );
 }

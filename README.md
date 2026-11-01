@@ -51,6 +51,14 @@ flutter run --dart-define=API_BASE_URL=http://192.168.1.100:3000/  # 真机：�
 
 不传 `API_BASE_URL` 时按平台选地址：Android 模拟器用 `10.0.2.2:3000`（模拟器里的 localhost 指向它自己），iOS 模拟器和 Web 用 `localhost:3000`。真机连不到这两个地址，必须传电脑的局域网 IP。VS Code 里可以直接用 `.vscode/launch.json` 的两个配置。
 
+## 分镜分享
+
+分镜页右上角「分享分镜」导出当前完整镜头、角色卡和即梦／可灵提示词，提示词随本次角色资料实时拼接。Android、iOS 使用 Pigeon 调起系统文本分享面板，Web 复制全文（需要 HTTPS 或 localhost，并允许剪贴板访问）。无镜头、生成中或模板未加载时按钮禁用；停止或部分失败后的有效镜头可分享，文本会标注未完整生成。打开或取消系统面板不等于已发送。
+
+Pigeon 版本锁定在 `app/pubspec.lock`。修改 `app/pigeons/share_api.dart` 后，在 `app/` 运行 `tool/generate_pigeon.sh`，生成 Dart、Kotlin、Swift 三端接口；生成文件不要手改。首次加入或修改原生分享实现后，完整停止并重新 `flutter run`，热重载不能加载新的原生代码。
+
+11/1 验证：Android API 37 模拟器实测打开系统分享面板，APK 与 Web 构建通过，Chrome 分享分支测试通过。iOS 已接入 UIActivityViewController（含 iPad 锚点），当前机器没有完整 Xcode，尚未编译或实机验证。
+
 ## 验证
 
 ```bash
@@ -82,7 +90,7 @@ cd app && flutter drive --profile --no-dds --driver=test_driver/perf_driver.dart
 | 首字延迟 | 分镜页状态行直接显示（发出请求到第一个字） | 11/1，本机 server 连真实模型：App（Android 模拟器）3.7–6.1 s；同一段故事绕过 App 直接请求 server 为 5.1–5.5 s，客户端链路几乎不增加耗时，主要取决于模型和故事本身（换一段措辞规整的故事直连只要 2.0–2.9 s） |
 | 流式帧耗时 / 掉帧数 | 「性能基线」测试 + DevTools，优化前后各一次 | 基线（11/1，Android 模拟器 API 37，profile，跑 2 次）：生成过程 UI 线程构建平均 1.5–1.7 ms、P90 2.6–2.8 ms、P99 23–25 ms，构建超 16 ms 的帧 5–6 / 338–366；滑动构建平均 2.1 ms、P99 24–38 ms。模拟器光栅化平均 65–144 ms，靠软件模拟 GPU，不作数。真机待测 |
 | 结构化输出一次解析成功率 | 20 个故事样本，`ParsedShot.repaired == false` 的比例 | 待测 |
-| 测试覆盖率 | CI 的 Test + coverage 步骤（门槛：app 85%，server 行 90% / 分支 75%） | 11/1：app 行覆盖率 92.7%（1039/1121，补测试前按同一口径是 50.1%）；server 行 98.8%、分支 84.1% |
+| 测试覆盖率 | CI 的 Test + coverage 步骤（门槛：app 85%，server 行 90% / 分支 75%） | 11/1：app 行覆盖率 93.1%（1098/1180，加入原生分享后；补测试前按同一口径是 50.1%）；server 行 98.8%、分支 84.1% |
 
 ## 展示方式
 

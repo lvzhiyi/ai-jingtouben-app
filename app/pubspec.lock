@@ -153,6 +153,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.2.1"
+  code_builder:
+    dependency: transitive
+    description:
+      name: code_builder
+      sha256: "811709c1badd02fc054039a13f66e0db1961865f9a314175f68c3eaeebec786f"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "4.13.0"
   collection:
     dependency: transitive
     description:
@@ -567,6 +575,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.3.0"
+  pigeon:
+    dependency: "direct dev"
+    description:
+      name: pigeon
+      sha256: "9d355b97019c8278498fd5d89b63ea346cdfa740ab128c342a7968e61fdafd0c"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "29.1.0"
   platform:
     dependency: transitive
     description:

@@ -25,6 +25,7 @@ Flutter 客户端 ──POST /storyboard/stream (SSE)──▶ NestJS 转发服�
 | `data/models/` | 景别、状态、平台枚举，镜头草稿、角色资料等纯数据 |
 | `data/storyboard/` | 流式分镜：SSE 解码 → 拼行 → 逐行解析校验 |
 | `data/prompt/` | 提示词模板解析、实时拼接、模板仓库（服务端 → 缓存 → 内置） |
+| `data/share/` | 分镜文本格式化与平台分享服务；Pigeon 生成 Dart/Kotlin/Swift 协议，原生只负责展示系统面板，Web 复制 |
 | `data/repositories/` | 按表封装读写，页面只依赖仓库 |
 | `pages/<page>/` | `page`（组装依赖）/ `view`（布局交互）/ `controller`（BLoC/Cubit）/ `state`；拆出的组件放 `widgets/`，每个组件一个文件 |
 | `resources/` | 主题与共享尺寸 |
@@ -81,3 +82,6 @@ Flutter 客户端 ──POST /storyboard/stream (SSE)──▶ NestJS 转发服�
 - **增量渲染怎么做**：半行 JSON 不等换行，直接用修复逻辑补齐括号后解析，字段写到哪显示到哪；补不齐（截在键名上）就沿用上一帧。正在写的镜头单独一个状态字段、单独一个 BlocBuilder，已完成的列表只在整行到达时重建一次。
 - **性能基线怎么测**：integration_test 回放固定节奏的 SSE（固定随机种子切块），`watchPerformance` 收集引擎的 FrameTiming，profile 模式跑，输出构建/光栅化的平均、P90、P99 和超预算帧数；输入固定，优化前后可直接对比。模拟器的光栅化数字不作数，只看 UI 线程。
 - **Key 为什么不能放客户端**：安装包能被解包，Key 一泄露就会被刷；转发服务持有 Key，并按安装 ID 限流，缺 ID 时退回按 IP。
+
+- **为什么用 Pigeon 做分享**：这是一个小而完整的 Flutter 与原生协作边界：Dart 组织文本，Pigeon 从单一接口生成三端编解码，Kotlin 用 ACTION_SEND、Swift 用 UIActivityViewController，避免手写通道名和参数解析。Web 没有原生宿主，走剪贴板。相比现成分享插件多了平台维护成本，但这次明确选择它来展示类型安全的平台互操作；接口只传标题和文本，不把业务或数据库放进原生层。
+- **分享完成如何定义**：通道返回只代表系统面板展示，不能宣称已发送；取消面板不弹成功提示。Web 只有 Clipboard.setData 成功才提示已复制。按钮取点击瞬间的状态，生成中禁用，不分享半行 JSON，坏行过滤并标注结果不完整。
