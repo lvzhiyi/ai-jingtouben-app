@@ -45,11 +45,11 @@ Web 版的 drift 需要把 `sqlite3.wasm` 和 `drift_worker.js` 放进 `app/web/
 ### 3. 运行
 
 ```bash
-flutter run --dart-define=API_BASE_URL=http://localhost:3000/   # iOS 模拟器 / Web
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000/    # Android 模拟器
+flutter run                                                    # 模拟器 / Web：自动连本机服务
+flutter run --dart-define=API_BASE_URL=http://192.168.1.100:3000/  # 真机：换成电脑的局域网 IP
 ```
 
-真机调试把地址换成电脑的局域网 IP。VS Code 里可以直接用 `.vscode/launch.json` 的两个配置。
+不传 `API_BASE_URL` 时按平台选地址：Android 模拟器用 `10.0.2.2:3000`（模拟器里的 localhost 指向它自己），iOS 模拟器和 Web 用 `localhost:3000`。真机连不到这两个地址，必须传电脑的局域网 IP。VS Code 里可以直接用 `.vscode/launch.json` 的两个配置。
 
 ## 验证
 
