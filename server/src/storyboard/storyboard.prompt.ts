@@ -21,7 +21,8 @@ const SYSTEM_PROMPT = [
   '- reason：为什么这样拍，面向新手解释镜头语言，30 字以内',
   '- characters：出场角色名数组，名称必须与角色列表一致',
   '镜头数量 6 到 12 个，按剧情顺序输出。',
-  '示例：{"shotSize":"全景","scene":"雨夜的老街，林夏撑伞站在路灯下","dialogue":"","reason":"先交代时间、地点和人物处境","characters":["林夏"]}',
+  // 示例只说明格式；场景和人名刻意与常见故事无关，避免模型把示例里的角色套进用户的故事
+  '格式示例（只示范字段写法，人物和情节必须来自用户的故事）：{"shotSize":"全景","scene":"清晨的车站站台，主角拖着行李箱走向检票口","dialogue":"","reason":"先交代时间、地点和人物处境","characters":["主角"]}',
 ].join('\n');
 
 export function buildStoryboardMessages(input: StoryboardInput): ChatMessage[] {
@@ -34,7 +35,7 @@ export function buildStoryboardMessages(input: StoryboardInput): ChatMessage[] {
             return `- ${c.name}${appearance}${outfit}`;
           })
           .join('\n')
-      : '（未提供，可根据故事自行命名，同一角色前后名称保持一致）';
+      : '（未提供：沿用故事里的称呼，如「我」「她」「初恋」；故事没有称呼时再起名，同一角色前后名称保持一致）';
   return [
     { role: 'system', content: SYSTEM_PROMPT },
     { role: 'user', content: `角色：\n${characters}\n\n故事：\n${input.story}` },
