@@ -2,6 +2,7 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../data/repositories/character_repository.dart';
 import '../../data/repositories/project_repository.dart';
 import '../../data/repositories/shot_repository.dart';
 import '../../data/storyboard/shot_line_parser.dart';
@@ -49,6 +50,7 @@ class StoryboardController extends Bloc<StoryboardEvent, StoryboardState> {
     required this.projectId,
     required this._projects,
     required this._shots,
+    required this._characters,
     required this._api,
   }) : super(const StoryboardState()) {
     on<StoryboardOpened>(_onOpened);
@@ -59,6 +61,7 @@ class StoryboardController extends Bloc<StoryboardEvent, StoryboardState> {
   final String projectId;
   final ProjectRepository _projects;
   final ShotRepository _shots;
+  final CharacterRepository _characters;
   final StoryboardApi _api;
 
   Future<void> _onOpened(StoryboardOpened event, Emitter<StoryboardState> emit) async {
@@ -101,10 +104,12 @@ class StoryboardController extends Bloc<StoryboardEvent, StoryboardState> {
       ),
     );
     await _projects.updateStory(projectId, story);
+    // 每次生成时现读角色卡，角色页的修改不需要通知分镜页。
+    final characters = await _characters.loadProfiles(projectId);
 
     try {
       await emit.forEach<GenerationUpdate>(
-        _api.generate(story: story),
+        _api.generate(story: story, characters: characters),
         onData: (update) => switch (update) {
           FirstTokenArrived(:final latency) => state.copyWith(
             phase: GenerationPhase.streaming,

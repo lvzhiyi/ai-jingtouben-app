@@ -7,6 +7,7 @@ import 'package:jingtouben/data/db/app_database.dart';
 import 'package:jingtouben/data/models/character_profile.dart';
 import 'package:jingtouben/data/models/shot_draft.dart';
 import 'package:jingtouben/data/models/shot_size.dart';
+import 'package:jingtouben/data/repositories/character_repository.dart';
 import 'package:jingtouben/data/repositories/project_repository.dart';
 import 'package:jingtouben/data/repositories/shot_repository.dart';
 import 'package:jingtouben/data/storyboard/shot_line_parser.dart';
@@ -18,12 +19,16 @@ class _FakeApi implements StoryboardApi {
   _FakeApi(this._source);
 
   final Stream<GenerationUpdate> Function() _source;
+  List<CharacterProfile>? lastCharacters;
 
   @override
   Stream<GenerationUpdate> generate({
     required String story,
     List<CharacterProfile> characters = const [],
-  }) => _source();
+  }) {
+    lastCharacters = characters;
+    return _source();
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -34,6 +39,7 @@ void main() {
   late AppDatabase db;
   late ProjectRepository projects;
   late ShotRepository shots;
+  late CharacterRepository characters;
   late String projectId;
 
   setUp(() async {
@@ -41,17 +47,20 @@ void main() {
     db = AppDatabase(NativeDatabase.memory());
     projects = ProjectRepository(db);
     shots = ShotRepository(db);
+    characters = CharacterRepository(db);
     projectId = await projects.create('雨夜重逢');
   });
 
   tearDown(() => db.close());
 
-  StoryboardController build(Stream<GenerationUpdate> Function() source) => StoryboardController(
-    projectId: projectId,
-    projects: projects,
-    shots: shots,
-    api: _FakeApi(source),
-  );
+  StoryboardController build(Stream<GenerationUpdate> Function() source, {_FakeApi? api}) =>
+      StoryboardController(
+        projectId: projectId,
+        projects: projects,
+        shots: shots,
+        characters: characters,
+        api: api ?? _FakeApi(source),
+      );
 
   test('生成完成后镜头写入数据库', () async {
     final bloc = build(
@@ -121,5 +130,24 @@ void main() {
 
     await bloc.close();
     await source.close();
+  });
+  test('生成时带上项目的角色卡', () async {
+    await characters.create(projectId, const CharacterProfile(name: '初恋', outfit: '米色风衣'));
+    final api = _FakeApi(
+      () => Stream.fromIterable(const [
+        ShotLineArrived(ParsedShot(ShotDraft(index: 0, shotSize: ShotSize.full, scene: '雨夜老街'))),
+        GenerationCompleted(),
+      ]),
+    );
+    final bloc = build(api._source, api: api);
+    bloc
+      ..add(const StoryChanged(story))
+      ..add(const GenerationRequested());
+    await bloc.stream.firstWhere((s) => s.phase == GenerationPhase.done);
+    // 等结果落库后再关闭，避免 tearDown 关库时写入还没结束
+    await shots.watchByProject(projectId).firstWhere((list) => list.isNotEmpty);
+
+    expect(api.lastCharacters, const [CharacterProfile(name: '初恋', outfit: '米色风衣')]);
+    await bloc.close();
   });
 }

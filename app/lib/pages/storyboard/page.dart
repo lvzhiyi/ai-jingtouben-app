@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../data/repositories/character_repository.dart';
 import '../../data/repositories/project_repository.dart';
 import '../../data/repositories/shot_repository.dart';
 import '../../data/storyboard/storyboard_api.dart';
@@ -19,6 +20,7 @@ class StoryboardPage extends StatelessWidget {
       projectId: projectId,
       projects: context.read<ProjectRepository>(),
       shots: context.read<ShotRepository>(),
+      characters: context.read<CharacterRepository>(),
       api: context.read<StoryboardApi>(),
     )..add(const StoryboardOpened()),
     child: const StoryboardView(),

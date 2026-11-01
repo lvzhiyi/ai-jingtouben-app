@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../resources/theme.dart';
 import 'controller.dart';
@@ -24,6 +25,16 @@ class StoryboardView extends StatelessWidget {
       builder: (context, state) => Scaffold(
         appBar: AppBar(
           title: Text(state.title.isEmpty ? '分镜' : state.title),
+          actions: [
+            IconButton(
+              tooltip: '角色卡',
+              icon: const Icon(Icons.people_alt_outlined),
+              onPressed: () => context.push(
+                '/projects/${context.read<StoryboardController>().projectId}/characters',
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(30),
             child: Padding(

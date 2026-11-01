@@ -4,6 +4,7 @@ import '../config/app_config.dart';
 import '../data/db/app_database.dart';
 import '../data/device/device_id_store.dart';
 import '../data/prompt/template_repository.dart';
+import '../data/repositories/character_repository.dart';
 import '../data/repositories/project_repository.dart';
 import '../data/repositories/shot_repository.dart';
 import '../data/storyboard/storyboard_api.dart';
@@ -17,6 +18,7 @@ class AppDependencies {
     required this.httpClient,
     required this.projects,
     required this.shots,
+    required this.characters,
     required this.storyboard,
     required this.templates,
   });
@@ -26,6 +28,7 @@ class AppDependencies {
   final http.Client httpClient;
   final ProjectRepository projects;
   final ShotRepository shots;
+  final CharacterRepository characters;
   final StoryboardApi storyboard;
   final TemplateRepository templates;
 
@@ -49,6 +52,7 @@ class AppDependencies {
         httpClient: client,
         projects: ProjectRepository(db),
         shots: ShotRepository(db),
+        characters: CharacterRepository(db),
         storyboard: StoryboardApi(
           client: client,
           baseUrl: config.apiBaseUrl,
