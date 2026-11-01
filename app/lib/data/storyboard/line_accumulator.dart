@@ -4,6 +4,9 @@
 class LineAccumulator {
   String _pending = '';
 
+  /// 还没遇到换行的半行，用于增量渲染正在生成的镜头。
+  String get pending => _pending;
+
   /// 追加一段增量，返回其中已经完整的行（不含换行符）。
   List<String> add(String delta) {
     _pending += delta;

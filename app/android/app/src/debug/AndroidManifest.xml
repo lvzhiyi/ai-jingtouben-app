@@ -4,4 +4,6 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- 调试包访问本机 http 转发服务（10.0.2.2:3000）需要允许明文流量；release 包仍只允许 https。 -->
+    <application android:usesCleartextTraffic="true" />
 </manifest>

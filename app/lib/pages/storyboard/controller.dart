@@ -79,7 +79,9 @@ class StoryboardController extends Bloc<StoryboardEvent, StoryboardState> {
     switch (event) {
       case GenerationCancelled():
         // restartable 已经取消了上一次生成的订阅，连接随之断开；这里只更新状态。
-        if (state.phase.isActive) emit(state.copyWith(phase: GenerationPhase.cancelled));
+        if (state.phase.isActive) {
+          emit(state.copyWith(phase: GenerationPhase.cancelled, drafting: () => null));
+        }
       case GenerationRequested():
         await _generate(emit);
     }
@@ -93,6 +95,7 @@ class StoryboardController extends Bloc<StoryboardEvent, StoryboardState> {
       state.copyWith(
         phase: GenerationPhase.connecting,
         items: const [],
+        drafting: () => null,
         firstTokenLatency: () => null,
         error: () => null,
       ),
@@ -107,13 +110,26 @@ class StoryboardController extends Bloc<StoryboardEvent, StoryboardState> {
             phase: GenerationPhase.streaming,
             firstTokenLatency: () => latency,
           ),
-          ShotLineArrived(:final result) => state.copyWith(items: [...state.items, result]),
-          GenerationCompleted() => state.copyWith(phase: GenerationPhase.done),
+          ShotDrafting(:final shot) => state.copyWith(drafting: () => shot),
+          ShotLineArrived(:final result) => state.copyWith(
+            items: [...state.items, result],
+            drafting: () => null,
+          ),
+          GenerationCompleted() => state.copyWith(
+            phase: GenerationPhase.done,
+            drafting: () => null,
+          ),
         },
       );
     } on ApiException catch (error) {
       if (!emit.isDone) {
-        emit(state.copyWith(phase: GenerationPhase.failed, error: () => error.kind));
+        emit(
+          state.copyWith(
+            phase: GenerationPhase.failed,
+            drafting: () => null,
+            error: () => error.kind,
+          ),
+        );
       }
       return;
     }

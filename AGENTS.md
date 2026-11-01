@@ -37,10 +37,10 @@
 ## 冲刺进度（10/29–11/11，每推进一步更新这里）
 
 - [x] 10/29 定位 + 一页技术方案（docs/architecture.md）
-- [~] 10/30 骨架、CI、转发服务：代码已写，但还没在本机跑过——`app/` 下还没执行 `flutter create .`（缺 android/ios/web 和 pubspec.lock），server 没装依赖；仓库已 git init 并推到 GitHub（lvzhiyi/ai-jingtouben-app）
+- [x] 10/30 骨架、CI、转发服务：本机 app / server 验证命令通过，GitHub CI 在 625f1a4 上首次全绿
 - [~] 10/31 流式生成分镜：SSE 解码、拼行、逐行解析和分镜页已写，首字延迟待实测
 - [x] 11/1 UI 视觉改版：参考 iPhone App 的奶油白与浅粉渐变、大圆角卡片和黑色悬浮操作，统一项目首页与分镜工作台；app 静态分析及 24 个测试通过，Android 热重载成功
-- [ ] 11/1 增量渲染 + 性能基线
+- [~] 11/1 增量渲染 + 性能基线：正在写的镜头按半行 JSON 补齐后实时显示（`PartialShot` / `DraftingShot`）；`integration_test/storyboard_perf_test.dart` 回放固定流式输入，模拟器 UI 线程基线已填进 README，真机和 DevTools 实测待做
 - [~] 11/2 数据模型 + 本地存储：drift 表和仓库已写（schemaVersion 1）
 - [~] 11/3 结构化分镜 + 角色卡 + 双平台提示词：提示词模板和拼接已写，角色卡页面未做
 - [ ] 11/4 周复盘 + 用户访谈
@@ -50,4 +50,4 @@
 - [ ] 11/8 README、演示视频、APK、Web 版
 - [ ] 11/9–11/11 简历、模拟面试、投递
 
-下一步：按 README「本地运行」把 app 和 server 跑起来，跑通「验证」命令，看 GitHub 上 CI 首次运行结果。
+下一步：接真机跑一次「性能基线」并用 DevTools 看流式过程的帧图，补上真机数字；同时连本机 server 实测首字延迟。11/7 优化的候选：`items` 追加时整表复制和 Equatable 深比较、每个增量都做一次半行修复解析、新到镜头时整个列表重建、增量按帧合并。

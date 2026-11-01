@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jingtouben/data/db/app_database.dart';
@@ -94,6 +94,31 @@ void main() {
 
     expect(upstreamCancelled, isTrue);
     expect(await shots.loadDrafts(projectId), isEmpty);
+    await bloc.close();
+    await source.close();
+  });
+  test('正在生成的镜头随增量更新，整行到达后清空', () async {
+    final source = StreamController<GenerationUpdate>();
+    final bloc = build(() => source.stream);
+    bloc
+      ..add(const StoryChanged(story))
+      ..add(const GenerationRequested());
+
+    const partial = PartialShot(index: 0, shotSize: ShotSize.full, scene: '雨夜');
+    source
+      ..add(const FirstTokenArrived(Duration(milliseconds: 300)))
+      ..add(const ShotDrafting(partial));
+    final drafting = await bloc.stream.firstWhere((s) => s.drafting != null);
+    expect(drafting.drafting, partial);
+
+    source.add(
+      const ShotLineArrived(
+        ParsedShot(ShotDraft(index: 0, shotSize: ShotSize.full, scene: '雨夜老街')),
+      ),
+    );
+    final arrived = await bloc.stream.firstWhere((s) => s.items.isNotEmpty);
+    expect(arrived.drafting, isNull);
+
     await bloc.close();
     await source.close();
   });

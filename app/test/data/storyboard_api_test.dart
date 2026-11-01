@@ -72,4 +72,20 @@ void main() {
       throwsA(isA<ApiException>().having((e) => e.kind, 'kind', ApiErrorKind.interrupted)),
     );
   });
+  test('正在生成的一行按增量交出半成品，内容不变时不重复交出', () async {
+    final body = [
+      _delta('{"shotSize":"全景","sc'),
+      _delta('ene":"雨夜'),
+      _delta('老街"'),
+      _delta(',"characters":["林'),
+      _delta('夏"],"reason":"交代环境"}\n'),
+      'event: done\ndata: {}\n\n',
+    ].join();
+
+    final updates = await _api(200, _chunks(body, 64)).generate(story: story).toList();
+
+    final drafts = [for (final update in updates.whereType<ShotDrafting>()) update.shot.scene];
+    expect(drafts, ['雨夜', '雨夜老街']);
+    expect(updates.whereType<ShotLineArrived>(), hasLength(1));
+  });
 }

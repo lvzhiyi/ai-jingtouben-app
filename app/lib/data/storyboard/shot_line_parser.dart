@@ -41,6 +41,28 @@ final class SkippedLine extends ShotLineResult {
   List<Object?> get props => [];
 }
 
+/// 还没写完的一行解析出的半成品镜头，只用于生成过程中的展示，不校验、不落库。
+final class PartialShot extends Equatable {
+  const PartialShot({
+    required this.index,
+    this.shotSize,
+    this.scene = '',
+    this.dialogue = '',
+    this.reason = '',
+  });
+
+  final int index;
+
+  /// 景别字段写完整之前为 null。
+  final ShotSize? shotSize;
+  final String scene;
+  final String dialogue;
+  final String reason;
+
+  @override
+  List<Object?> get props => [index, shotSize, scene, dialogue, reason];
+}
+
 /// 把模型输出的一行文本解析成镜头。
 ///
 /// 每行独立解析：坏一行只把这一行标成「需重新生成」，不影响其他镜头。
@@ -66,6 +88,24 @@ class ShotLineParser {
       return BrokenShot(index: index, raw: trimmed, reason: '不是镜头对象');
     }
     return _validate(decoded, index: index, raw: trimmed, repaired: repaired);
+  }
+
+  /// 解析还没写完的半行：借用 [repair] 补齐被截断的引号和括号，读出已经写出来的字段。
+  ///
+  /// 截在键名或冒号处时补齐后仍不是合法 JSON，返回 null，由调用方沿用上一次的结果。
+  PartialShot? parsePartial(String line, {required int index}) {
+    final trimmed = line.trim();
+    if (trimmed.isEmpty || trimmed.startsWith('```')) return null;
+    final decoded = _tryDecode(repair(trimmed));
+    if (decoded is! Map<String, dynamic>) return null;
+    final shot = PartialShot(
+      index: index,
+      shotSize: ShotSize.tryParse(decoded['shotSize']),
+      scene: _text(decoded['scene']),
+      dialogue: _text(decoded['dialogue']),
+      reason: _text(decoded['reason']),
+    );
+    return shot.shotSize == null && shot.scene.isEmpty ? null : shot;
   }
 
   /// 修复模型常见的格式错误：列表符号或编号前缀、行尾逗号、对象里多余的逗号、输出被截断没有闭合。

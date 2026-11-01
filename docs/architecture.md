@@ -42,6 +42,7 @@ Flutter 客户端 ──POST /storyboard/stream (SSE)──▶ NestJS 转发服�
 2. 每拼出一行交给 `ShotLineParser`：直接解析 → 修复常见错误后再解析 → 字段校验与兜底。坏行标成「需重新生成」，不影响其他镜头。
 3. `StoryboardController` 用 `emit.forEach` 消费更新；生成相关事件走 `restartable()`，「停止」和「重新生成」会自动取消上一次订阅，连接随之断开，服务端感知断开后中止上游请求。
 4. 只有收到 `done` 的完整结果才在事务里整体写库；取消或失败保留上一次的完整结果。
+5. 增量渲染：每个 delta 之后，`LineAccumulator.pending` 里还没写完的半行借用 `ShotLineParser.repair` 补齐引号和括号，读出已经写出来的字段（`PartialShot`），内容变了才发 `ShotDrafting`。状态里单独放 `drafting`，只有列表末尾的 `DraftingShot` 订阅它，高频重建不碰已完成的镜头。
 
 ## 相对 course_student_app 的调整
 
@@ -65,4 +66,6 @@ Flutter 客户端 ──POST /storyboard/stream (SSE)──▶ NestJS 转发服�
 - **模型输出坏 JSON 用户看到什么**：先自动修复（行尾逗号、编号前缀、截断补齐），修不好的那一行显示「需重新生成」，其他镜头照常展示；修复过的计入失败，用来统计一次解析成功率。
 - **取消怎么做**：`restartable()` 让新事件取消旧处理器 → 取消订阅 → http 连接关闭 → 服务端 `res.on('close')` 中止上游 fetch，不为没人看的输出付费。
 - **为什么 drift 不用 hive**：有关联查询和外键级联；提示词不落库，按「镜头 + 角色卡 + 模板」实时拼，改一处全更新。
+- **增量渲染怎么做**：半行 JSON 不等换行，直接用修复逻辑补齐括号后解析，字段写到哪显示到哪；补不齐（截在键名上）就沿用上一帧。正在写的镜头单独一个状态字段、单独一个 BlocBuilder，已完成的列表只在整行到达时重建一次。
+- **性能基线怎么测**：integration_test 回放固定节奏的 SSE（固定随机种子切块），`watchPerformance` 收集引擎的 FrameTiming，profile 模式跑，输出构建/光栅化的平均、P90、P99 和超预算帧数；输入固定，优化前后可直接对比。模拟器的光栅化数字不作数，只看 UI 线程。
 - **Key 为什么不能放客户端**：安装包能被解包，Key 一泄露就会被刷；转发服务持有 Key，并按安装 ID 限流，缺 ID 时退回按 IP。

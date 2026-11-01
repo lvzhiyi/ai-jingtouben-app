@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../resources/theme.dart';
 import 'controller.dart';
 import 'state.dart';
+import 'widgets/drafting_shot.dart';
 import 'widgets/generation_bar.dart';
 import 'widgets/shot_list.dart';
 import 'widgets/story_input.dart';
@@ -96,6 +97,7 @@ class _StoryboardBody extends StatelessWidget {
               ),
             ),
             const ShotList(),
+            const DraftingShot(),
           ],
         ),
       ),
