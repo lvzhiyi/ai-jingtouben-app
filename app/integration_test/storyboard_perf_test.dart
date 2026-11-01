@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:drift/native.dart';
@@ -21,7 +22,8 @@ import 'package:jingtouben/data/db/app_database.dart';
 ///   --target=integration_test/storyboard_perf_test.dart
 /// ```
 ///
-/// 结果写到 `build/storyboard_perf.json`。
+/// 结果写到 `build/storyboard_perf.json`。内存用进程 RSS（`ProcessInfo.currentRss`）：
+/// 生成前、生成中每 100 ms 采样取峰值、生成后、滑动后各记一次，单位 MB。
 const _shotCount = 20;
 const _deltaInterval = Duration(milliseconds: 25);
 const _projectTitle = '性能基线';
@@ -44,14 +46,17 @@ void main() {
     await tester.tap(find.text(_projectTitle));
     await tester.pumpAndSettle();
 
+    final memory = _MemorySampler()..sample('before_generate');
     await binding.watchPerformance(() async {
       await tester.tap(find.text('生成分镜'));
       final deadline = DateTime.now().add(const Duration(minutes: 1));
       while (find.textContaining('共 $_shotCount 个镜头').evaluate().isEmpty) {
         if (DateTime.now().isAfter(deadline)) fail('生成没有在 1 分钟内完成');
+        memory.samplePeak();
         await Future<void>.delayed(const Duration(milliseconds: 100));
       }
     }, reportKey: 'storyboard_streaming');
+    memory.sample('after_generate');
 
     final scrollable = find.byType(CustomScrollView);
     await binding.watchPerformance(() async {
@@ -62,10 +67,31 @@ void main() {
         await tester.pumpAndSettle();
       }
     }, reportKey: 'shot_list_scroll');
+    memory.sample('after_scroll');
+    binding.reportData = {...?binding.reportData, 'memory_rss_mb': memory.toJson()};
 
     // 先卸载组件树，JingtoubenApp 在 dispose 里关闭数据库和网络客户端。
     await tester.pumpWidget(const SizedBox.shrink());
   });
+}
+
+/// 进程常驻内存（RSS）采样。RSS 包含引擎、图片缓存和 Dart 堆，和系统看到的占用一致；
+/// 只看生成前后的差值和峰值，绝对值随设备不同。
+class _MemorySampler {
+  final _points = <String, double>{};
+  var _peak = 0;
+
+  static double _mb(int bytes) => (bytes / 1024 / 1024 * 10).roundToDouble() / 10;
+
+  void sample(String name) => _points[name] = _mb(ProcessInfo.currentRss);
+
+  void samplePeak() => _peak = max(_peak, ProcessInfo.currentRss);
+
+  Map<String, double> toJson() => {
+    ..._points,
+    'peak_during_generate': _mb(_peak),
+    'max_rss_since_start': _mb(ProcessInfo.maxRss),
+  };
 }
 
 /// 只响应流式分镜接口，按固定节奏回放 SSE；其他请求（如模板下发）返回 404，走内置模板。

@@ -81,14 +81,14 @@ cd server && npm run test:cov                # 门槛在 package.json 的 jest.c
 cd app && flutter drive --profile --no-dds --driver=test_driver/perf_driver.dart --target=integration_test/storyboard_perf_test.dart
 ```
 
-结果写到 `app/build/storyboard_perf.json`（`storyboard_streaming` 是生成过程，`shot_list_scroll` 是滑动）。`--no-dds` 不能省，否则测试连不上 VM Service。
+结果写到 `app/build/storyboard_perf.json`（`storyboard_streaming` 是生成过程，`shot_list_scroll` 是滑动，`memory_rss_mb` 是生成前 / 生成中峰值 / 生成后 / 滑动后的进程内存 RSS）。`--no-dds` 不能省，否则测试连不上 VM Service。
 
 ## 要记录的数字
 
 | 指标 | 怎么测 | 结果 |
 | --- | --- | --- |
 | 首字延迟 | 分镜页状态行直接显示（发出请求到第一个字） | 11/1，本机 server 连真实模型：App（Android 模拟器）3.7–6.1 s；同一段故事绕过 App 直接请求 server 为 5.1–5.5 s，客户端链路几乎不增加耗时，主要取决于模型和故事本身（换一段措辞规整的故事直连只要 2.0–2.9 s） |
-| 流式帧耗时 / 掉帧数 | 「性能基线」测试 + DevTools，优化前后各一次 | 基线（11/1，Android 模拟器 API 37，profile，跑 2 次）：生成过程 UI 线程构建平均 1.5–1.7 ms、P90 2.6–2.8 ms、P99 23–25 ms，构建超 16 ms 的帧 5–6 / 338–366；滑动构建平均 2.1 ms、P99 24–38 ms。模拟器光栅化平均 65–144 ms，靠软件模拟 GPU，不作数。真机待测 |
+| 流式帧耗时 / 掉帧数 | 「性能基线」测试 + DevTools，优化前后各一次 | 基线（11/1，Android 模拟器 API 37，profile，跑 2 次）：生成过程 UI 线程构建平均 1.5–1.7 ms、P90 2.6–2.8 ms、P99 23–25 ms，构建超 16 ms 的帧 5–6 / 338–366；滑动构建平均 2.1 ms、P99 24–38 ms。模拟器光栅化平均 65–144 ms，靠软件模拟 GPU，不作数。内存（RSS，模拟器）：生成前 252 MB、生成中峰值 263 MB、生成后 246 MB，生成 20 个镜头不涨内存。**真机（11/1，Android 小米 15 Ultra，profile，约 120 Hz）**：生成过程构建平均 0.26 ms、P90 0.82 ms、P99 2.0 ms、最差 7.8 ms，光栅化平均 0.28 ms、P99 0.56 ms，超预算帧 0 / 1936；滑动构建平均 0.29 ms、P99 3.0 ms，光栅化 P99 0.63 ms，超预算帧 0 / 916（工具按 16 ms 统计；按 120 Hz 的 8.3 ms 预算看，最差帧也在预算内）；内存 RSS 生成前 295 MB、峰值 300 MB、生成后 272 MB |
 | 结构化输出一次解析成功率 | 20 个故事样本，`ParsedShot.repaired == false` 的比例 | 待测 |
 | 测试覆盖率 | CI 的 Test + coverage 步骤（门槛：app 85%，server 行 90% / 分支 75%） | 11/1：app 行覆盖率 93.1%（1098/1180，加入原生分享后；补测试前按同一口径是 50.1%）；server 行 98.8%、分支 84.1% |
 
