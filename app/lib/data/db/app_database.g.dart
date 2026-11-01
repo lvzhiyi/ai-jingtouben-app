@@ -891,15 +891,15 @@ class $ShotsTable extends Shots with TableInfo<$ShotsTable, Shot> {
     defaultValue: const Constant(''),
   );
   @override
-  late final GeneratedColumnWithTypeConverter<List<String>, String> characterIds =
+  late final GeneratedColumnWithTypeConverter<List<String>, String> characterNames =
       GeneratedColumn<String>(
-        'character_ids',
+        'character_names',
         aliasedName,
         false,
         type: DriftSqlType.string,
         requiredDuringInsert: false,
         defaultValue: const Constant('[]'),
-      ).withConverter<List<String>>($ShotsTable.$convertercharacterIds);
+      ).withConverter<List<String>>($ShotsTable.$convertercharacterNames);
   @override
   late final GeneratedColumnWithTypeConverter<ShotStatus, String> status = GeneratedColumn<String>(
     'status',
@@ -920,7 +920,7 @@ class $ShotsTable extends Shots with TableInfo<$ShotsTable, Shot> {
     scene,
     dialogue,
     reason,
-    characterIds,
+    characterNames,
     status,
   ];
   @override
@@ -1023,10 +1023,10 @@ class $ShotsTable extends Shots with TableInfo<$ShotsTable, Shot> {
         DriftSqlType.string,
         data['${effectivePrefix}reason'],
       )!,
-      characterIds: $ShotsTable.$convertercharacterIds.fromSql(
+      characterNames: $ShotsTable.$convertercharacterNames.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
-          data['${effectivePrefix}character_ids'],
+          data['${effectivePrefix}character_names'],
         )!,
       ),
       status: $ShotsTable.$converterstatus.fromSql(
@@ -1042,7 +1042,7 @@ class $ShotsTable extends Shots with TableInfo<$ShotsTable, Shot> {
 
   static JsonTypeConverter2<ShotSize, String, String> $convertershotSize =
       const EnumNameConverter<ShotSize>(ShotSize.values);
-  static TypeConverter<List<String>, String> $convertercharacterIds = const StringListConverter();
+  static TypeConverter<List<String>, String> $convertercharacterNames = const StringListConverter();
   static JsonTypeConverter2<ShotStatus, String, String> $converterstatus =
       const EnumNameConverter<ShotStatus>(ShotStatus.values);
 }
@@ -1059,7 +1059,10 @@ class Shot extends DataClass implements Insertable<Shot> {
   final String scene;
   final String dialogue;
   final String reason;
-  final List<String> characterIds;
+
+  /// 出场角色名。按名字而不是角色卡 ID 记录：模型输出的就是名字，没建角色卡的人物也要保留；
+  /// 拼提示词时再按名字匹配角色卡，角色卡改名时由仓库同步改这里。
+  final List<String> characterNames;
   final ShotStatus status;
   const Shot({
     required this.updatedAt,
@@ -1071,7 +1074,7 @@ class Shot extends DataClass implements Insertable<Shot> {
     required this.scene,
     required this.dialogue,
     required this.reason,
-    required this.characterIds,
+    required this.characterNames,
     required this.status,
   });
   @override
@@ -1091,8 +1094,8 @@ class Shot extends DataClass implements Insertable<Shot> {
     map['dialogue'] = Variable<String>(dialogue);
     map['reason'] = Variable<String>(reason);
     {
-      map['character_ids'] = Variable<String>(
-        $ShotsTable.$convertercharacterIds.toSql(characterIds),
+      map['character_names'] = Variable<String>(
+        $ShotsTable.$convertercharacterNames.toSql(characterNames),
       );
     }
     {
@@ -1112,7 +1115,7 @@ class Shot extends DataClass implements Insertable<Shot> {
       scene: Value(scene),
       dialogue: Value(dialogue),
       reason: Value(reason),
-      characterIds: Value(characterIds),
+      characterNames: Value(characterNames),
       status: Value(status),
     );
   }
@@ -1131,7 +1134,7 @@ class Shot extends DataClass implements Insertable<Shot> {
       scene: serializer.fromJson<String>(json['scene']),
       dialogue: serializer.fromJson<String>(json['dialogue']),
       reason: serializer.fromJson<String>(json['reason']),
-      characterIds: serializer.fromJson<List<String>>(json['characterIds']),
+      characterNames: serializer.fromJson<List<String>>(json['characterNames']),
       status: $ShotsTable.$converterstatus.fromJson(serializer.fromJson<String>(json['status'])),
     );
   }
@@ -1148,7 +1151,7 @@ class Shot extends DataClass implements Insertable<Shot> {
       'scene': serializer.toJson<String>(scene),
       'dialogue': serializer.toJson<String>(dialogue),
       'reason': serializer.toJson<String>(reason),
-      'characterIds': serializer.toJson<List<String>>(characterIds),
+      'characterNames': serializer.toJson<List<String>>(characterNames),
       'status': serializer.toJson<String>($ShotsTable.$converterstatus.toJson(status)),
     };
   }
@@ -1163,7 +1166,7 @@ class Shot extends DataClass implements Insertable<Shot> {
     String? scene,
     String? dialogue,
     String? reason,
-    List<String>? characterIds,
+    List<String>? characterNames,
     ShotStatus? status,
   }) => Shot(
     updatedAt: updatedAt ?? this.updatedAt,
@@ -1175,7 +1178,7 @@ class Shot extends DataClass implements Insertable<Shot> {
     scene: scene ?? this.scene,
     dialogue: dialogue ?? this.dialogue,
     reason: reason ?? this.reason,
-    characterIds: characterIds ?? this.characterIds,
+    characterNames: characterNames ?? this.characterNames,
     status: status ?? this.status,
   );
   Shot copyWithCompanion(ShotsCompanion data) {
@@ -1189,7 +1192,7 @@ class Shot extends DataClass implements Insertable<Shot> {
       scene: data.scene.present ? data.scene.value : this.scene,
       dialogue: data.dialogue.present ? data.dialogue.value : this.dialogue,
       reason: data.reason.present ? data.reason.value : this.reason,
-      characterIds: data.characterIds.present ? data.characterIds.value : this.characterIds,
+      characterNames: data.characterNames.present ? data.characterNames.value : this.characterNames,
       status: data.status.present ? data.status.value : this.status,
     );
   }
@@ -1206,7 +1209,7 @@ class Shot extends DataClass implements Insertable<Shot> {
           ..write('scene: $scene, ')
           ..write('dialogue: $dialogue, ')
           ..write('reason: $reason, ')
-          ..write('characterIds: $characterIds, ')
+          ..write('characterNames: $characterNames, ')
           ..write('status: $status')
           ..write(')'))
         .toString();
@@ -1223,7 +1226,7 @@ class Shot extends DataClass implements Insertable<Shot> {
     scene,
     dialogue,
     reason,
-    characterIds,
+    characterNames,
     status,
   );
   @override
@@ -1239,7 +1242,7 @@ class Shot extends DataClass implements Insertable<Shot> {
           other.scene == this.scene &&
           other.dialogue == this.dialogue &&
           other.reason == this.reason &&
-          other.characterIds == this.characterIds &&
+          other.characterNames == this.characterNames &&
           other.status == this.status);
 }
 
@@ -1253,7 +1256,7 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
   final Value<String> scene;
   final Value<String> dialogue;
   final Value<String> reason;
-  final Value<List<String>> characterIds;
+  final Value<List<String>> characterNames;
   final Value<ShotStatus> status;
   final Value<int> rowid;
   const ShotsCompanion({
@@ -1266,7 +1269,7 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
     this.scene = const Value.absent(),
     this.dialogue = const Value.absent(),
     this.reason = const Value.absent(),
-    this.characterIds = const Value.absent(),
+    this.characterNames = const Value.absent(),
     this.status = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1280,7 +1283,7 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
     required String scene,
     this.dialogue = const Value.absent(),
     this.reason = const Value.absent(),
-    this.characterIds = const Value.absent(),
+    this.characterNames = const Value.absent(),
     this.status = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -1298,7 +1301,7 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
     Expression<String>? scene,
     Expression<String>? dialogue,
     Expression<String>? reason,
-    Expression<String>? characterIds,
+    Expression<String>? characterNames,
     Expression<String>? status,
     Expression<int>? rowid,
   }) {
@@ -1312,7 +1315,7 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
       if (scene != null) 'scene': scene,
       if (dialogue != null) 'dialogue': dialogue,
       if (reason != null) 'reason': reason,
-      if (characterIds != null) 'character_ids': characterIds,
+      if (characterNames != null) 'character_names': characterNames,
       if (status != null) 'status': status,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1328,7 +1331,7 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
     Value<String>? scene,
     Value<String>? dialogue,
     Value<String>? reason,
-    Value<List<String>>? characterIds,
+    Value<List<String>>? characterNames,
     Value<ShotStatus>? status,
     Value<int>? rowid,
   }) {
@@ -1342,7 +1345,7 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
       scene: scene ?? this.scene,
       dialogue: dialogue ?? this.dialogue,
       reason: reason ?? this.reason,
-      characterIds: characterIds ?? this.characterIds,
+      characterNames: characterNames ?? this.characterNames,
       status: status ?? this.status,
       rowid: rowid ?? this.rowid,
     );
@@ -1378,9 +1381,9 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
     if (reason.present) {
       map['reason'] = Variable<String>(reason.value);
     }
-    if (characterIds.present) {
-      map['character_ids'] = Variable<String>(
-        $ShotsTable.$convertercharacterIds.toSql(characterIds.value),
+    if (characterNames.present) {
+      map['character_names'] = Variable<String>(
+        $ShotsTable.$convertercharacterNames.toSql(characterNames.value),
       );
     }
     if (status.present) {
@@ -1404,7 +1407,7 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
           ..write('scene: $scene, ')
           ..write('dialogue: $dialogue, ')
           ..write('reason: $reason, ')
-          ..write('characterIds: $characterIds, ')
+          ..write('characterNames: $characterNames, ')
           ..write('status: $status, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -2828,7 +2831,7 @@ typedef $$ShotsTableCreateCompanionBuilder = ShotsCompanion Function({
   required String scene,
   Value<String> dialogue,
   Value<String> reason,
-  Value<List<String>> characterIds,
+  Value<List<String>> characterNames,
   Value<ShotStatus> status,
   Value<int> rowid,
 });
@@ -2842,7 +2845,7 @@ typedef $$ShotsTableUpdateCompanionBuilder = ShotsCompanion Function({
   Value<String> scene,
   Value<String> dialogue,
   Value<String> reason,
-  Value<List<String>> characterIds,
+  Value<List<String>> characterNames,
   Value<ShotStatus> status,
   Value<int> rowid,
 });
@@ -2914,9 +2917,9 @@ class $$ShotsTableFilterComposer extends Composer<_$AppDatabase, $ShotsTable> {
   ColumnFilters<String> get reason =>
       $composableBuilder(column: $table.reason, builder: (column) => ColumnFilters(column));
 
-  ColumnWithTypeConverterFilters<List<String>, List<String>, String> get characterIds =>
+  ColumnWithTypeConverterFilters<List<String>, List<String>, String> get characterNames =>
       $composableBuilder(
-        column: $table.characterIds,
+        column: $table.characterNames,
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
 
@@ -2996,8 +2999,10 @@ class $$ShotsTableOrderingComposer extends Composer<_$AppDatabase, $ShotsTable> 
   ColumnOrderings<String> get reason =>
       $composableBuilder(column: $table.reason, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get characterIds =>
-      $composableBuilder(column: $table.characterIds, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get characterNames => $composableBuilder(
+    column: $table.characterNames,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => ColumnOrderings(column));
@@ -3053,8 +3058,8 @@ class $$ShotsTableAnnotationComposer extends Composer<_$AppDatabase, $ShotsTable
   GeneratedColumn<String> get reason =>
       $composableBuilder(column: $table.reason, builder: (column) => column);
 
-  GeneratedColumnWithTypeConverter<List<String>, String> get characterIds =>
-      $composableBuilder(column: $table.characterIds, builder: (column) => column);
+  GeneratedColumnWithTypeConverter<List<String>, String> get characterNames =>
+      $composableBuilder(column: $table.characterNames, builder: (column) => column);
 
   GeneratedColumnWithTypeConverter<ShotStatus, String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
@@ -3132,7 +3137,7 @@ class $$ShotsTableTableManager
                 Value<String> scene = const Value.absent(),
                 Value<String> dialogue = const Value.absent(),
                 Value<String> reason = const Value.absent(),
-                Value<List<String>> characterIds = const Value.absent(),
+                Value<List<String>> characterNames = const Value.absent(),
                 Value<ShotStatus> status = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ShotsCompanion(
@@ -3145,7 +3150,7 @@ class $$ShotsTableTableManager
                 scene: scene,
                 dialogue: dialogue,
                 reason: reason,
-                characterIds: characterIds,
+                characterNames: characterNames,
                 status: status,
                 rowid: rowid,
               ),
@@ -3160,7 +3165,7 @@ class $$ShotsTableTableManager
                 required String scene,
                 Value<String> dialogue = const Value.absent(),
                 Value<String> reason = const Value.absent(),
-                Value<List<String>> characterIds = const Value.absent(),
+                Value<List<String>> characterNames = const Value.absent(),
                 Value<ShotStatus> status = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ShotsCompanion.insert(
@@ -3173,7 +3178,7 @@ class $$ShotsTableTableManager
                 scene: scene,
                 dialogue: dialogue,
                 reason: reason,
-                characterIds: characterIds,
+                characterNames: characterNames,
                 status: status,
                 rowid: rowid,
               ),

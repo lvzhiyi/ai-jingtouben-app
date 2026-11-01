@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../data/repositories/character_repository.dart';
 import '../../data/repositories/project_repository.dart';
+import '../../data/prompt/template_repository.dart';
 import '../../data/repositories/shot_repository.dart';
 import '../../data/storyboard/shot_line_parser.dart';
 import '../../data/storyboard/storyboard_api.dart';
@@ -17,7 +18,7 @@ sealed class StoryboardEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// 进入页面：读取项目和已保存的镜头。
+/// 进入页面：读取项目、已保存的镜头和提示词模板，并订阅角色卡。
 final class StoryboardOpened extends StoryboardEvent {
   const StoryboardOpened();
 }
@@ -51,6 +52,7 @@ class StoryboardController extends Bloc<StoryboardEvent, StoryboardState> {
     required this._projects,
     required this._shots,
     required this._characters,
+    required this._templates,
     required this._api,
   }) : super(const StoryboardState()) {
     on<StoryboardOpened>(_onOpened);
@@ -62,6 +64,7 @@ class StoryboardController extends Bloc<StoryboardEvent, StoryboardState> {
   final ProjectRepository _projects;
   final ShotRepository _shots;
   final CharacterRepository _characters;
+  final TemplateRepository _templates;
   final StoryboardApi _api;
 
   Future<void> _onOpened(StoryboardOpened event, Emitter<StoryboardState> emit) async {
@@ -75,6 +78,19 @@ class StoryboardController extends Bloc<StoryboardEvent, StoryboardState> {
         items: [for (final draft in drafts) ParsedShot(draft)],
         phase: drafts.isEmpty ? GenerationPhase.idle : GenerationPhase.done,
       ),
+    );
+
+    // 模板有服务端 → 缓存 → 内置三级兜底，只有内置文件损坏才会失败；失败时镜头卡不显示提示词。
+    try {
+      emit(state.copyWith(templates: await _templates.load()));
+    } on StateError {
+      // 忽略，见上
+    }
+
+    // 页面存续期间一直订阅：角色页里改了外貌服装，返回时提示词已经是新的。
+    await emit.forEach(
+      _characters.watchProfiles(projectId),
+      onData: (characters) => state.copyWith(characters: characters),
     );
   }
 

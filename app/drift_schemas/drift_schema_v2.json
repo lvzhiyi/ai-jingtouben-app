@@ -1,0 +1,613 @@
+{
+  "_meta": {
+    "description": "This file contains a serialized version of schema entities for drift.",
+    "version": "1.3.0"
+  },
+  "options": {
+    "store_date_time_values_as_text": true
+  },
+  "entities": [
+    {
+      "id": 0,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "projects",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "updated_at",
+            "getter_name": "updatedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": "const CustomExpression('CURRENT_TIMESTAMP')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "remote_id",
+            "getter_name": "remoteId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "title",
+            "getter_name": "title",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "allowed-lengths": {
+                  "min": 1,
+                  "max": 100
+                }
+              }
+            ]
+          },
+          {
+            "name": "story",
+            "getter_name": "story",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": "const CustomExpression('\\'\\'')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "created_at",
+            "getter_name": "createdAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": "const CustomExpression('CURRENT_TIMESTAMP')",
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [],
+        "explicit_pk": [
+          "id"
+        ]
+      }
+    },
+    {
+      "id": 1,
+      "references": [
+        0
+      ],
+      "type": "table",
+      "data": {
+        "name": "character_cards",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "updated_at",
+            "getter_name": "updatedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": "const CustomExpression('CURRENT_TIMESTAMP')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "remote_id",
+            "getter_name": "remoteId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "project_id",
+            "getter_name": "projectId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "REFERENCES projects (id) ON DELETE CASCADE",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "REFERENCES projects (id) ON DELETE CASCADE"
+            },
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "projects",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ]
+          },
+          {
+            "name": "name",
+            "getter_name": "name",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "allowed-lengths": {
+                  "min": 1,
+                  "max": 20
+                }
+              }
+            ]
+          },
+          {
+            "name": "appearance",
+            "getter_name": "appearance",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": "const CustomExpression('\\'\\'')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "outfit",
+            "getter_name": "outfit",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": "const CustomExpression('\\'\\'')",
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [],
+        "explicit_pk": [
+          "id"
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "references": [
+        0
+      ],
+      "type": "table",
+      "data": {
+        "name": "shots",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "updated_at",
+            "getter_name": "updatedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": "const CustomExpression('CURRENT_TIMESTAMP')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "remote_id",
+            "getter_name": "remoteId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "project_id",
+            "getter_name": "projectId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "REFERENCES projects (id) ON DELETE CASCADE",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "REFERENCES projects (id) ON DELETE CASCADE"
+            },
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "projects",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ]
+          },
+          {
+            "name": "sort_order",
+            "getter_name": "sortOrder",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "shot_size",
+            "getter_name": "shotSize",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<ShotSize>(ShotSize.values)",
+              "dart_type_name": "ShotSize"
+            }
+          },
+          {
+            "name": "scene",
+            "getter_name": "scene",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "dialogue",
+            "getter_name": "dialogue",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": "const CustomExpression('\\'\\'')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "reason",
+            "getter_name": "reason",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": "const CustomExpression('\\'\\'')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "character_names",
+            "getter_name": "characterNames",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": "const CustomExpression('\\'[]\\'')",
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const StringListConverter()",
+              "dart_type_name": "List<String>"
+            }
+          },
+          {
+            "name": "status",
+            "getter_name": "status",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": "const CustomExpression('\\'pending\\'')",
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<ShotStatus>(ShotStatus.values)",
+              "dart_type_name": "ShotStatus"
+            }
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [],
+        "explicit_pk": [
+          "id"
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "references": [
+        2
+      ],
+      "type": "table",
+      "data": {
+        "name": "generations",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "updated_at",
+            "getter_name": "updatedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": "const CustomExpression('CURRENT_TIMESTAMP')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "remote_id",
+            "getter_name": "remoteId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "shot_id",
+            "getter_name": "shotId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "REFERENCES shots (id) ON DELETE CASCADE",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "REFERENCES shots (id) ON DELETE CASCADE"
+            },
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "shots",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ]
+          },
+          {
+            "name": "platform",
+            "getter_name": "platform",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<VideoPlatform>(VideoPlatform.values)",
+              "dart_type_name": "VideoPlatform"
+            }
+          },
+          {
+            "name": "prompt",
+            "getter_name": "prompt",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "result_note",
+            "getter_name": "resultNote",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": "const CustomExpression('\\'\\'')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "picked",
+            "getter_name": "picked",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "CHECK (\"picked\" IN (0, 1))",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "CHECK (\"picked\" IN (0, 1))"
+            },
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "created_at",
+            "getter_name": "createdAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": "const CustomExpression('CURRENT_TIMESTAMP')",
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [],
+        "explicit_pk": [
+          "id"
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "key_values",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "entry_key",
+            "getter_name": "entryKey",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "entry_value",
+            "getter_name": "entryValue",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [],
+        "explicit_pk": [
+          "entry_key"
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "references": [
+        2
+      ],
+      "type": "index",
+      "data": {
+        "on": 2,
+        "name": "shots_project_order",
+        "sql": null,
+        "unique": false,
+        "columns": [
+          {
+            "column": "project_id",
+            "order_by": null
+          },
+          {
+            "column": "sort_order",
+            "order_by": null
+          }
+        ]
+      }
+    }
+  ],
+  "fixed_sql": [
+    {
+      "name": "projects",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"projects\" (\"updated_at\" TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP), \"remote_id\" TEXT NULL, \"id\" TEXT NOT NULL, \"title\" TEXT NOT NULL, \"story\" TEXT NOT NULL DEFAULT '', \"created_at\" TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP), PRIMARY KEY (\"id\"));"
+        }
+      ]
+    },
+    {
+      "name": "character_cards",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"character_cards\" (\"updated_at\" TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP), \"remote_id\" TEXT NULL, \"id\" TEXT NOT NULL, \"project_id\" TEXT NOT NULL REFERENCES projects (id) ON DELETE CASCADE, \"name\" TEXT NOT NULL, \"appearance\" TEXT NOT NULL DEFAULT '', \"outfit\" TEXT NOT NULL DEFAULT '', PRIMARY KEY (\"id\"));"
+        }
+      ]
+    },
+    {
+      "name": "shots",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"shots\" (\"updated_at\" TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP), \"remote_id\" TEXT NULL, \"id\" TEXT NOT NULL, \"project_id\" TEXT NOT NULL REFERENCES projects (id) ON DELETE CASCADE, \"sort_order\" INTEGER NOT NULL, \"shot_size\" TEXT NOT NULL, \"scene\" TEXT NOT NULL, \"dialogue\" TEXT NOT NULL DEFAULT '', \"reason\" TEXT NOT NULL DEFAULT '', \"character_names\" TEXT NOT NULL DEFAULT '[]', \"status\" TEXT NOT NULL DEFAULT 'pending', PRIMARY KEY (\"id\"));"
+        }
+      ]
+    },
+    {
+      "name": "generations",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"generations\" (\"updated_at\" TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP), \"remote_id\" TEXT NULL, \"id\" TEXT NOT NULL, \"shot_id\" TEXT NOT NULL REFERENCES shots (id) ON DELETE CASCADE, \"platform\" TEXT NOT NULL, \"prompt\" TEXT NOT NULL, \"result_note\" TEXT NOT NULL DEFAULT '', \"picked\" INTEGER NOT NULL DEFAULT 0 CHECK (\"picked\" IN (0, 1)), \"created_at\" TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP), PRIMARY KEY (\"id\"));"
+        }
+      ]
+    },
+    {
+      "name": "key_values",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"key_values\" (\"entry_key\" TEXT NOT NULL, \"entry_value\" TEXT NOT NULL, PRIMARY KEY (\"entry_key\"));"
+        }
+      ]
+    },
+    {
+      "name": "shots_project_order",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX shots_project_order ON shots (project_id, sort_order)"
+        }
+      ]
+    }
+  ]
+}

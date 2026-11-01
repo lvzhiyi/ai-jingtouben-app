@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 
 import '../../../data/models/shot_draft.dart';
+import '../../../data/models/video_platform.dart';
+import 'shot_prompts.dart';
 
-/// 一个镜头：序号、景别、画面、台词、出场角色和「为什么这样拍」。
+/// 一个镜头：序号、景别、画面、台词、出场角色、「为什么这样拍」和各平台的视频提示词。
 class ShotCard extends StatelessWidget {
-  const ShotCard({super.key, required this.shot});
+  const ShotCard({super.key, required this.shot, this.prompts = const {}});
 
   final ShotDraft shot;
+
+  /// 各平台拼好的提示词，为空时不显示提示词区域。
+  final Map<VideoPlatform, String> prompts;
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +75,7 @@ class ShotCard extends StatelessWidget {
                   style: theme.textTheme.bodySmall?.copyWith(color: scheme.error),
                 ),
               ),
+            if (prompts.isNotEmpty) ...[const SizedBox(height: 20), ShotPrompts(prompts: prompts)],
           ],
         ),
       ),

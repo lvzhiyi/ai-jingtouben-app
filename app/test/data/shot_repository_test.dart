@@ -45,4 +45,13 @@ void main() {
 
     expect(await db.select(db.shots).get(), isEmpty);
   });
+  test('出场角色随镜头保存和读出', () async {
+    final projectId = await projects.create('雨夜重逢');
+    await shots.replaceAll(projectId, const [
+      ShotDraft(index: 0, shotSize: ShotSize.medium, scene: '擦肩相撞', characters: ['我', '初恋']),
+    ]);
+
+    final drafts = await shots.loadDrafts(projectId);
+    expect(drafts.single.characters, ['我', '初恋']);
+  });
 }

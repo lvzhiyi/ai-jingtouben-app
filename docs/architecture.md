@@ -44,6 +44,13 @@ Flutter 客户端 ──POST /storyboard/stream (SSE)──▶ NestJS 转发服�
 4. 只有收到 `done` 的完整结果才在事务里整体写库；取消或失败保留上一次的完整结果。
 5. 增量渲染：每个 delta 之后，`LineAccumulator.pending` 里还没写完的半行借用 `ShotLineParser.repair` 补齐引号和括号，读出已经写出来的字段（`PartialShot`），内容变了才发 `ShotDrafting`。状态里单独放 `drafting`，只有列表末尾的 `DraftingShot` 订阅它，高频重建不碰已完成的镜头。
 
+## 改表流程
+
+1. 改 `tables.dart`，`schemaVersion` 加 1，在 `migration.onUpgrade` 里写 `if (from < N)` 的升级步骤；
+2. `dart run build_runner build --delete-conflicting-outputs`；
+3. `dart run drift_dev schema dump lib/data/db/app_database.dart drift_schemas/drift_schema_vN.json` 存下新版本快照；
+4. `dart run drift_dev schema generate drift_schemas/ test/generated_migrations/`，在 `test/data/migration_test.dart` 补一个从上一版升级的用例（插旧数据 → 迁移 → 校验结构和数据）。
+
 ## 相对 course_student_app 的调整
 
 保留了熟悉的部分：`bootstrap/` + `AppDependencies` 统一管理生命周期、page/view/controller/state 页面结构、go_router、错误分类不带敏感信息、构建期配置。
@@ -65,8 +72,9 @@ Flutter 客户端 ──POST /storyboard/stream (SSE)──▶ NestJS 转发服�
 - **JSON 被拆在两个包里怎么办**：分三层处理——字节层交给 `utf8.decoder`，事件层 `SseDecoder` 缓冲到空行，行层 `LineAccumulator` 缓冲到换行。每层有单测，测试里故意每 7 字节切一刀。
 - **模型输出坏 JSON 用户看到什么**：先自动修复（行尾逗号、编号前缀、截断补齐），修不好的那一行显示「需重新生成」，其他镜头照常展示；修复过的计入失败，用来统计一次解析成功率。
 - **取消怎么做**：`restartable()` 让新事件取消旧处理器 → 取消订阅 → http 连接关闭 → 服务端 `res.on('close')` 中止上游 fetch，不为没人看的输出付费。
+- **数据库升级怎么保证不丢数据**：每个版本用 drift_dev 存一份结构快照，迁移测试从旧版本建库、插数据、执行迁移，再和新版本快照逐表比对结构并检查数据还在。
 - **为什么 drift 不用 hive**：有关联查询和外键级联；提示词不落库，按「镜头 + 角色卡 + 模板」实时拼，改一处全更新。
-- **角色卡怎么和镜头对上**：按角色名匹配，所以同一项目内不允许重名；生成时现读角色卡交给模型，提示要求出场角色名与角色列表一致。不建角色也能生成，模型沿用故事原有称呼。
+- **角色卡怎么和镜头对上**：镜头里存出场角色名而不是角色卡 ID——模型输出的就是名字，没建角色卡的人物也要留下；拼提示词时按名字匹配，角色卡改名时在同一事务里同步改镜头。同一项目内不允许重名；生成时现读角色卡交给模型，提示要求出场角色名与角色列表一致。不建角色也能生成，模型沿用故事原有称呼。
 - **增量渲染怎么做**：半行 JSON 不等换行，直接用修复逻辑补齐括号后解析，字段写到哪显示到哪；补不齐（截在键名上）就沿用上一帧。正在写的镜头单独一个状态字段、单独一个 BlocBuilder，已完成的列表只在整行到达时重建一次。
 - **性能基线怎么测**：integration_test 回放固定节奏的 SSE（固定随机种子切块），`watchPerformance` 收集引擎的 FrameTiming，profile 模式跑，输出构建/光栅化的平均、P90、P99 和超预算帧数；输入固定，优化前后可直接对比。模拟器的光栅化数字不作数，只看 UI 线程。
 - **Key 为什么不能放客户端**：安装包能被解包，Key 一泄露就会被刷；转发服务持有 Key，并按安装 ID 限流，缺 ID 时退回按 IP。

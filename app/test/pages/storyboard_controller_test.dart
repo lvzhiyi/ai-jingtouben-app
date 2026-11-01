@@ -4,7 +4,11 @@ import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jingtouben/data/db/app_database.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:jingtouben/data/models/character_profile.dart';
+import 'package:jingtouben/data/models/video_platform.dart';
+import 'package:jingtouben/data/prompt/template_repository.dart';
 import 'package:jingtouben/data/models/shot_draft.dart';
 import 'package:jingtouben/data/models/shot_size.dart';
 import 'package:jingtouben/data/repositories/character_repository.dart';
@@ -34,6 +38,13 @@ class _FakeApi implements StoryboardApi {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+const _bundledTemplates = '''
+{"version": 1, "templates": [
+  {"platform": "jimeng", "version": 1, "shot": "{shotSize}，{scene}[。人物：{characters}]", "character": "{name}[，穿{outfit}]"},
+  {"platform": "kling", "version": 1, "shot": "{scene}，{shotSize}", "character": "{name}"}
+]}
+''';
+
 void main() {
   const story = '雨夜，林夏在老街等一个不会来的人。';
   late AppDatabase db;
@@ -59,6 +70,13 @@ void main() {
         projects: projects,
         shots: shots,
         characters: characters,
+        templates: TemplateRepository(
+          // 服务端不可用，走内置模板
+          client: MockClient((_) async => http.Response('', 503)),
+          baseUrl: Uri.parse('http://localhost:3000/'),
+          database: db,
+          loadBundled: () async => _bundledTemplates,
+        ),
         api: api ?? _FakeApi(source),
       );
 
@@ -148,6 +166,28 @@ void main() {
     await shots.watchByProject(projectId).firstWhere((list) => list.isNotEmpty);
 
     expect(api.lastCharacters, const [CharacterProfile(name: '初恋', outfit: '米色风衣')]);
+    await bloc.close();
+  });
+  test('进入页面后按角色卡拼出提示词，改角色卡后实时更新', () async {
+    final id = await characters.create(projectId, const CharacterProfile(name: '初恋'));
+    await shots.replaceAll(projectId, const [
+      ShotDraft(index: 0, shotSize: ShotSize.medium, scene: '擦肩相撞', characters: ['我', '初恋']),
+    ]);
+    final bloc = build(() => const Stream.empty())..add(const StoryboardOpened());
+
+    var state = await bloc.stream.firstWhere(
+      (s) => s.templates != null && s.characters.isNotEmpty && s.items.isNotEmpty,
+    );
+    final shot = (state.items.single as ParsedShot).shot;
+    expect(state.promptsFor(shot), {
+      VideoPlatform.jimeng: '中景，擦肩相撞。人物：我；初恋',
+      VideoPlatform.kling: '擦肩相撞，中景',
+    });
+
+    await characters.update(id, const CharacterProfile(name: '初恋', outfit: '米色风衣'));
+    state = await bloc.stream.firstWhere((s) => s.characters.single.outfit.isNotEmpty);
+    expect(state.promptsFor(shot)[VideoPlatform.jimeng], '中景，擦肩相撞。人物：我；初恋，穿米色风衣');
+
     await bloc.close();
   });
 }

@@ -3,8 +3,11 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jingtouben/data/db/app_database.dart';
 import 'package:jingtouben/data/models/character_profile.dart';
+import 'package:jingtouben/data/models/shot_draft.dart';
+import 'package:jingtouben/data/models/shot_size.dart';
 import 'package:jingtouben/data/repositories/character_repository.dart';
 import 'package:jingtouben/data/repositories/project_repository.dart';
+import 'package:jingtouben/data/repositories/shot_repository.dart';
 
 void main() {
   late AppDatabase db;
@@ -42,5 +45,17 @@ void main() {
     await projects.delete(projectId);
 
     expect(await characters.loadProfiles(projectId), isEmpty);
+  });
+  test('角色改名时同步镜头里的出场角色名', () async {
+    final projectId = await projects.create('雨夜重逢');
+    final shots = ShotRepository(db);
+    final id = await characters.create(projectId, const CharacterProfile(name: '初恋'));
+    await shots.replaceAll(projectId, const [
+      ShotDraft(index: 0, shotSize: ShotSize.medium, scene: '擦肩相撞', characters: ['我', '初恋']),
+    ]);
+
+    await characters.update(id, const CharacterProfile(name: '白月光'));
+
+    expect((await shots.loadDrafts(projectId)).single.characters, ['我', '白月光']);
   });
 }

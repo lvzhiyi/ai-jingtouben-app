@@ -27,10 +27,16 @@ class AppDatabase extends _$AppDatabase {
 
   /// 改表时加 1，并在 [migration] 里写升级步骤。
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        // v2：镜头的出场角色从 character_ids 改为 character_names。v1 从未写入过这一列，直接重建表。
+        await m.alterTable(TableMigration(shots, newColumns: [shots.characterNames]));
+      }
+    },
     beforeOpen: (details) async {
       // SQLite 默认不检查外键，必须每次连接都打开，删除项目时才会级联删除镜头。
       await customStatement('PRAGMA foreign_keys = ON');

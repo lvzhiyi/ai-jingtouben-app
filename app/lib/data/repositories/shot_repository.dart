@@ -31,6 +31,7 @@ class ShotRepository {
             scene: draft.scene,
             dialogue: Value(draft.dialogue),
             reason: Value(draft.reason),
+            characterNames: Value(draft.characters),
           ),
       ]);
     });
@@ -53,5 +54,6 @@ extension on Shot {
     scene: scene,
     dialogue: dialogue,
     reason: reason,
+    characters: characterNames,
   );
 }

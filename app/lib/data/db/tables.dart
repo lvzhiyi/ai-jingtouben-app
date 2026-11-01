@@ -49,7 +49,10 @@ class Shots extends Table with SyncColumns {
   TextColumn get scene => text()();
   TextColumn get dialogue => text().withDefault(const Constant(''))();
   TextColumn get reason => text().withDefault(const Constant(''))();
-  TextColumn get characterIds =>
+
+  /// 出场角色名。按名字而不是角色卡 ID 记录：模型输出的就是名字，没建角色卡的人物也要保留；
+  /// 拼提示词时再按名字匹配角色卡，角色卡改名时由仓库同步改这里。
+  TextColumn get characterNames =>
       text().map(const StringListConverter()).withDefault(const Constant('[]'))();
   TextColumn get status => textEnum<ShotStatus>().withDefault(Constant(ShotStatus.pending.name))();
 
