@@ -25,7 +25,7 @@ Flutter 客户端 ──POST /storyboard/stream (SSE)──▶ NestJS 转发服�
 | `data/models/` | 景别、状态、平台枚举，镜头草稿、角色资料等纯数据 |
 | `data/storyboard/` | 流式分镜：SSE 解码 → 拼行 → 逐行解析校验 |
 | `data/prompt/` | 提示词模板解析、实时拼接、模板仓库（服务端 → 缓存 → 内置） |
-| `data/share/` | 分镜文本格式化与平台分享服务；Pigeon 生成 Dart/Kotlin/Swift 协议，原生只负责展示系统面板，Web 复制 |
+| `data/share/` | 分镜文本格式化、给 ai-tools 的结构化 JSON 导出（`storyboard_json.dart`）与平台分享服务；Pigeon 生成 Dart/Kotlin/Swift 协议，原生只负责展示系统面板，Web 复制 |
 | `data/repositories/` | 按表封装读写，页面只依赖仓库 |
 | `pages/<page>/` | `page`（组装依赖）/ `view`（布局交互）/ `controller`（BLoC/Cubit）/ `state`；拆出的组件放 `widgets/`，每个组件一个文件 |
 | `resources/` | 主题与共享尺寸 |

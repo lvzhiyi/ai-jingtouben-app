@@ -55,6 +55,12 @@ flutter run --dart-define=API_BASE_URL=http://192.168.1.100:3000/  # 真机：�
 
 分镜页右上角「分享分镜」导出当前完整镜头、角色卡和即梦／可灵提示词，提示词随本次角色资料实时拼接。Android、iOS 使用 Pigeon 调起系统文本分享面板，Web 复制全文（需要 HTTPS 或 localhost，并允许剪贴板访问）。无镜头、生成中或模板未加载时按钮禁用；停止或部分失败后的有效镜头可分享，文本会标注未完整生成。打开或取消系统面板不等于已发送。
 
+## 导出 JSON（给 ai-tools）
+
+分镜页右上角「导出 JSON」把项目标题、故事、角色卡和镜头（景别、画面、台词、为什么这样拍、出场角色）导出成结构化 JSON，不含即梦／可灵提示词，给本机的 [ai-tools](../ai-tools) 本地流水线用：那边的 `studio import` 会把它改写成英文出图提示词，再跑出图、配音、图生视频。格式说明见 ai-tools README 的「从镜头本导入」，代码在 `app/lib/data/share/storyboard_json.dart`（`format: jingtouben.storyboard`，`version: 1`，改格式时升版本号）。
+
+走和分享相同的通道：Android、iOS 调起系统面板（隔空投送、存到文件），Web 复制全文，复制后在 Mac 上运行 `pbpaste | uv run studio import -`。启用条件和分享一样，但不依赖提示词模板；未完整生成时带 `"incomplete": true`。
+
 Pigeon 版本锁定在 `app/pubspec.lock`。修改 `app/pigeons/share_api.dart` 后，在 `app/` 运行 `tool/generate_pigeon.sh`，生成 Dart、Kotlin、Swift 三端接口；生成文件不要手改。首次加入或修改原生分享实现后，完整停止并重新 `flutter run`，热重载不能加载新的原生代码。
 
 11/1 验证：Android API 37 模拟器实测打开系统分享面板，APK 与 Web 构建通过，Chrome 分享分支测试通过。iOS 已接入 UIActivityViewController（含 iPad 锚点），当前机器没有完整 Xcode，尚未编译或实机验证。
