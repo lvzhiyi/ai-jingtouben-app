@@ -59,7 +59,7 @@
 - 需求说明：`README.md`（产品背景与第一版范围）
 - 任务卡目录 / 总览：无 / `AGENTS.md`「冲刺进度」
 - 设计索引：无
-- 工程规范：`docs/architecture.md`；约束见本文件「约束」
+- 工程规范：架构 `docs/architecture.md`；代码 / UI / 接口见 `docs/development/` 下的 coding、ui、api-integration；验证见 `README.md`「验证」；约束见本文件「约束」
 - 规格工具：无（设计与计划文档放在 `docs/superpowers/specs/`、`docs/superpowers/plans/`）
 - 交接目录：`docs/development/handoffs/<task-id>.md`
 - 验证命令：
