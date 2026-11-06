@@ -52,3 +52,23 @@
 - [ ] 11/9–11/11 简历、模拟面试、投递
 
 下一步：11/6 镜头进度板；在有完整 Xcode 的环境编译并验证 iOS／iPad 原生分享；11/4 周复盘 + 用户访谈；接真机跑一次「性能基线」并用 DevTools 看流式过程的帧图，补上真机数字。11/7 优化的候选：`items` 追加时整表复制和 Equatable 深比较、每个增量都做一次半行修复解析、新到镜头时整个列表重建、增量按帧合并。
+
+## 工作流配置（ai-dev-workflow）
+
+- 产品文档根：无单独目录（项目首页：`README.md`）
+- 需求说明：`README.md`（产品背景与第一版范围）
+- 任务卡目录 / 总览：无 / `AGENTS.md`「冲刺进度」
+- 设计索引：无
+- 工程规范：`docs/architecture.md`；约束见本文件「约束」
+- 规格工具：无（设计与计划文档放在 `docs/superpowers/specs/`、`docs/superpowers/plans/`）
+- 交接目录：`docs/development/handoffs/<task-id>.md`
+- 验证命令：
+  - 文档：workflow-core 文档规范检查（`check_docs.py`，由技能调用）
+  - 轻量：app `cd app && dart format lib test && flutter analyze && flutter test <相关测试文件>`；server `cd server && npm run typecheck && npm test -- <相关测试>`
+  - 标准：app `cd app && dart format lib test && flutter analyze && flutter test`；server `cd server && npm run typecheck && npm test`
+  - 完整：标准档 + `cd app && MIN_COVERAGE=85 tool/coverage.sh && flutter build web --release`；`cd server && npm run test:cov && npm run build`；`diff app/assets/prompt_templates.json server/src/templates/prompt-templates.json`
+- 默认验证平台：Android（模拟器或真机）；iOS 只在明确要求且有完整 Xcode 时验证；Web 按需
+- 设计工具：无
+- 接口工具：无
+- 代码产物要求：不手改生成代码（`*.g.dart`、Pigeon 产物）；改表后运行 build_runner，同步 `schemaVersion` 和迁移步骤；Pigeon 用 `app/tool/generate_pigeon.sh` 重新生成
+- 项目额外约定：只在 develop 上提交，不开 feat 分支和 PR；改提示词模板要同时改客户端和服务端两份；不自动提交、推送或发布
