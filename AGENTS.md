@@ -48,6 +48,7 @@
 - [~] 11/6 镜头进度板 + Pigeon 导出：进度板已完成（分镜页入口，按镜头记录每次即梦／可灵生成并存提示词快照、选定一次、改备注、删除，状态由记录推导，按状态筛选和进度条；有记录时重新生成先确认），app 86 测试、覆盖率 94.7%；11/6 在 Android 模拟器（Pixel 9 Pro XL，mock 转发服务）走通记录／选定／筛选／改备注／删除和重新生成确认清空，无运行时异常。Pigeon 29.1.0 原生文本分享已实现，Android 模拟器实测系统面板、Web 构建及 Chrome 分支测试通过；iOS 已接入但缺完整 Xcode 未编译
 - [x] 11/5 对接 ai-tools：分镜页「导出 JSON」（`storyboard_json.dart`），ai-tools 用 `studio import` 导入跑本地生成；两边联调通过，app 72 测试、覆盖率 93.4%
 - [ ] 11/7 性能优化 + 前后对比表
+- [ ] 镜头预演（排在 11/7 之后，完整档）：需求 [docs/product/需求/镜头预演.md](docs/product/需求/镜头预演.md)，模块卡 [docs/product/任务/镜头预演.md](docs/product/任务/镜头预演.md)（PV-R01～R05，待确认 Q1–Q6）
 - [ ] 11/8 README、演示视频、APK、Web 版
 - [ ] 11/9–11/11 简历、模拟面试、投递
 
@@ -56,8 +57,8 @@
 ## 工作流配置（ai-dev-workflow）
 
 - 产品文档根：无单独目录（项目首页：`README.md`）
-- 需求说明：`README.md`（产品背景与第一版范围）
-- 任务卡目录 / 总览：无 / `AGENTS.md`「冲刺进度」
+- 需求说明：`README.md`（产品背景与第一版范围）；功能需求见 `docs/product/需求/`
+- 任务卡目录 / 总览：`docs/product/任务/` / `AGENTS.md`「冲刺进度」
 - 设计索引：无
 - 工程规范：架构 `docs/architecture.md`；代码 / UI / 接口见 `docs/development/` 下的 coding、ui、api-integration；验证见 `README.md`「验证」；约束见本文件「约束」
 - 规格工具：无
