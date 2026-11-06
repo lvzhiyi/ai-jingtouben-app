@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jingtouben/data/db/app_database.dart';
+import 'package:jingtouben/data/models/camera_move.dart';
 import 'package:jingtouben/data/models/shot_draft.dart';
 import 'package:jingtouben/data/models/shot_size.dart';
 import 'package:jingtouben/data/repositories/project_repository.dart';
@@ -33,6 +34,24 @@ void main() {
 
     final drafts = await shots.loadDrafts(projectId);
     expect(drafts.map((d) => d.scene), ['第一镜', '第二镜']);
+  });
+
+  test('运镜和时长随镜头保存和读出，时长可以为空', () async {
+    final projectId = await projects.create('雨夜重逢');
+    await shots.replaceAll(projectId, const [
+      ShotDraft(
+        index: 0,
+        shotSize: ShotSize.full,
+        scene: '第一镜',
+        cameraMove: CameraMove.follow,
+        durationMs: 3500,
+      ),
+      ShotDraft(index: 1, shotSize: ShotSize.closeUp, scene: '第二镜'),
+    ]);
+
+    final drafts = await shots.loadDrafts(projectId);
+    expect(drafts.map((d) => d.cameraMove), [CameraMove.follow, CameraMove.fixed]);
+    expect(drafts.map((d) => d.durationMs), [3500, null]);
   });
 
   test('删除项目时级联删除镜头', () async {

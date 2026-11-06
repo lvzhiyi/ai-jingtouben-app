@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jingtouben/data/models/camera_move.dart';
+import 'package:jingtouben/data/models/shot_draft.dart';
 import 'package:jingtouben/data/models/shot_size.dart';
 import 'package:jingtouben/data/storyboard/line_accumulator.dart';
 import 'package:jingtouben/data/storyboard/shot_line_parser.dart';
@@ -9,7 +11,7 @@ void main() {
   group('ShotLineParser', () {
     test('合法的一行直接解析成功', () {
       final result = parser.parse(
-        '{"shotSize":"特写","scene":"林夏回头","dialogue":"是你？","reason":"放大情绪","characters":["林夏"]}',
+        '{"shotSize":"特写","scene":"林夏回头","dialogue":"是你？","reason":"放大情绪","characters":["林夏"],"cameraMove":"推","durationSec":2.5}',
         index: 2,
       );
       expect(result, isA<ParsedShot>());
@@ -18,6 +20,8 @@ void main() {
       expect(parsed.shot.index, 2);
       expect(parsed.shot.shotSize, ShotSize.closeUp);
       expect(parsed.shot.characters, ['林夏']);
+      expect(parsed.shot.cameraMove, CameraMove.push);
+      expect(parsed.shot.durationMs, 2500);
       expect(parsed.shot.warnings, isEmpty);
     });
 
@@ -43,6 +47,50 @@ void main() {
       final shot = (result as ParsedShot).shot;
       expect(shot.shotSize, ShotSize.medium);
       expect(shot.warnings, contains('景别无法识别，已按中景处理'));
+    });
+
+    test('运镜缺失或不在枚举里时按固定兜底并提示，不算坏行', () {
+      for (final line in [
+        '{"shotSize":"中景","scene":"街口","reason":"x"}',
+        '{"shotSize":"中景","scene":"街口","reason":"x","cameraMove":"环绕"}',
+        '{"shotSize":"中景","scene":"街口","reason":"x","cameraMove":3}',
+      ]) {
+        final shot = (parser.parse(line, index: 0) as ParsedShot).shot;
+        expect(shot.cameraMove, CameraMove.fixed, reason: line);
+        expect(shot.warnings, contains('运镜无法识别，已按固定处理'), reason: line);
+      }
+    });
+
+    test('运镜带「镜头」结尾或写枚举名也能识别', () {
+      final a = parser.parse(
+        '{"shotSize":"中景","scene":"街口","reason":"x","cameraMove":"推镜头"}',
+        index: 0,
+      );
+      final b = parser.parse(
+        '{"shotSize":"中景","scene":"街口","reason":"x","cameraMove":"crane"}',
+        index: 0,
+      );
+      expect((a as ParsedShot).shot.cameraMove, CameraMove.push);
+      expect((b as ParsedShot).shot.cameraMove, CameraMove.crane);
+      expect(a.shot.warnings, isEmpty);
+    });
+
+    test('时长缺失时为空且不提示；越界或不是数字时为空并提示', () {
+      ShotDraft parse(String duration) => (parser.parse(
+        '{"shotSize":"中景","scene":"街口","reason":"x","cameraMove":"固定"$duration}',
+        index: 0,
+      ) as ParsedShot).shot;
+
+      final missing = parse('');
+      expect(missing.durationMs, isNull);
+      expect(missing.warnings, isEmpty);
+      expect(parse(',"durationSec":1').durationMs, 1000);
+      expect(parse(',"durationSec":10').durationMs, 10000);
+      for (final bad in [',"durationSec":0.5', ',"durationSec":12', ',"durationSec":"3"']) {
+        final shot = parse(bad);
+        expect(shot.durationMs, isNull, reason: bad);
+        expect(shot.warnings, contains('时长无效，已按默认时长'), reason: bad);
+      }
     });
 
     test('缺少画面描述或无法修复时标记为需要重新生成', () {

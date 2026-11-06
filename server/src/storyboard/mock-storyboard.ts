@@ -7,6 +7,8 @@ const MOCK_SHOTS = [
     dialogue: '',
     reason: '先用全景交代时间、地点和人物处境',
     characters: ['林夏'],
+    cameraMove: '拉',
+    durationSec: 3,
   },
   {
     shotSize: '中景',
@@ -14,6 +16,7 @@ const MOCK_SHOTS = [
     dialogue: '',
     reason: '中景把注意力收到人物的动作上',
     characters: ['林夏'],
+    cameraMove: '推',
   },
   {
     shotSize: '特写',
@@ -21,6 +24,8 @@ const MOCK_SHOTS = [
     dialogue: '',
     reason: '特写让观众和角色同时看到关键信息',
     characters: [],
+    cameraMove: '固定',
+    durationSec: 2,
   },
   {
     shotSize: '近景',
@@ -28,6 +33,8 @@ const MOCK_SHOTS = [
     dialogue: '……是你吗？',
     reason: '近景放大情绪变化，是短剧最常用的情绪镜头',
     characters: ['林夏'],
+    cameraMove: '缓推',
+    durationSec: 3.5,
   },
   {
     shotSize: '远景',
@@ -35,6 +42,8 @@ const MOCK_SHOTS = [
     dialogue: '',
     reason: '远景保持距离感，制造悬念',
     characters: ['陈默'],
+    cameraMove: '摇',
+    durationSec: 3,
   },
   {
     shotSize: '中景',
@@ -42,6 +51,8 @@ const MOCK_SHOTS = [
     dialogue: '',
     reason: '用前景遮挡做转场，给下一集留钩子',
     characters: ['林夏', '陈默'],
+    cameraMove: '移',
+    durationSec: 4,
   },
 ];
 
@@ -51,7 +62,8 @@ const MOCK_SHOTS = [
  */
 export async function* mockStoryboard(signal: AbortSignal): AsyncGenerator<string> {
   const lines = MOCK_SHOTS.map((shot) => JSON.stringify(shot));
-  // 故意给第 3 行加一个行尾逗号，演示客户端的修复兜底
+  // 故意给第 3 行加一个行尾逗号，演示客户端的修复兜底；
+  // 第 2 行不给时长、第 4 行给未知运镜「缓推」，演示默认时长和运镜兜底
   lines[2] = `${lines[2]},`;
   const text = `${lines.join('\n')}\n`;
 

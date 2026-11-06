@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 
 import '../../../data/models/shot_draft.dart';
+import '../../../data/models/shot_duration.dart';
 import '../../../data/models/video_platform.dart';
 import 'shot_prompts.dart';
 
-/// 一个镜头：序号、景别、画面、台词、出场角色、「为什么这样拍」和各平台的视频提示词。
+/// 「推 · 3.0 秒」；时长是推导值时写「约 2.0 秒」。
+String _motionText(ShotDraft shot) {
+  final seconds = (shot.effectiveDurationMs / 1000).toStringAsFixed(1);
+  return '${shot.cameraMove.label} · ${shot.isDurationEstimated ? '约 ' : ''}$seconds 秒';
+}
+
+/// 一个镜头：序号、景别、运镜与时长、画面、台词、出场角色、「为什么这样拍」和各平台的视频提示词。
 class ShotCard extends StatelessWidget {
   const ShotCard({super.key, required this.shot, this.prompts = const {}});
 
@@ -31,6 +38,8 @@ class ShotCard extends StatelessWidget {
                   style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const Spacer(),
+                Text(_motionText(shot), style: secondary),
+                const SizedBox(width: 10),
                 DecoratedBox(
                   decoration: BoxDecoration(
                     color: scheme.primaryContainer,

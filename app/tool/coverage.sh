@@ -7,12 +7,12 @@
 # 口径：
 # - flutter test 只统计被测试 import 到的文件，完全没测的文件不会出现，覆盖率会虚高。
 #   所以先生成一个 import 全部 lib 文件的空测试，把它们都纳入统计。
-# - 排除 drift 生成代码（*.g.dart）、表定义（只给代码生成读，运行时不执行）、
+# - 排除 drift 生成代码（*.g.dart、按版本生成的 schema_versions.dart）、表定义（只给代码生成读，运行时不执行）、
 #   Web 专用实现和 main.dart。
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-EXCLUDE='(\.g\.dart|lib/main\.dart|lib/data/db/tables\.dart|lib/net/http_client_web\.dart)$'
+EXCLUDE='(\.g\.dart|lib/data/db/schema_versions\.dart|lib/main\.dart|lib/data/db/tables\.dart|lib/net/http_client_web\.dart)$'
 ALL_FILES_TEST=test/_all_files_test.dart
 
 trap 'rm -f "$ALL_FILES_TEST"' EXIT

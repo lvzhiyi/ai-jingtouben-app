@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jingtouben/data/models/camera_move.dart';
 import 'package:jingtouben/data/models/shot_draft.dart';
 import 'package:jingtouben/data/models/shot_size.dart';
 import 'package:jingtouben/data/models/video_platform.dart';
@@ -31,6 +32,28 @@ void main() {
     expect(find.text('林夏回头'), findsOneWidget);
     expect(find.text('「是你？」'), findsOneWidget);
     expect(find.text('放大情绪'), findsOneWidget);
+    expect(find.text('固定 · 约 2.0 秒'), findsOneWidget);
+  });
+
+  testWidgets('有存储时长时显示运镜和准确时长', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        home: const Scaffold(
+          body: ShotCard(
+            shot: ShotDraft(
+              index: 0,
+              shotSize: ShotSize.long,
+              scene: '街口',
+              cameraMove: CameraMove.crane,
+              durationMs: 3500,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('升降 · 3.5 秒'), findsOneWidget);
   });
   testWidgets('切换平台查看提示词，点击复制后写入剪贴板', (tester) async {
     String? copied;

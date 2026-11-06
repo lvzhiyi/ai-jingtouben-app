@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../models/camera_move.dart';
 import '../models/shot_size.dart';
 import '../models/shot_status.dart';
 import '../models/video_platform.dart';
@@ -55,6 +56,13 @@ class Shots extends Table with SyncColumns {
   TextColumn get characterNames =>
       text().map(const StringListConverter()).withDefault(const Constant('[]'))();
   TextColumn get status => textEnum<ShotStatus>().withDefault(Constant(ShotStatus.pending.name))();
+
+  /// v3 新增。旧镜头迁移后为「固定」。
+  TextColumn get cameraMove =>
+      textEnum<CameraMove>().withDefault(Constant(CameraMove.fixed.name))();
+
+  /// v3 新增，毫秒。为空时按默认规则推导，不回写。
+  IntColumn get durationMs => integer().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

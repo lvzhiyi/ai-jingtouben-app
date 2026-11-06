@@ -32,6 +32,8 @@ class ShotRepository {
             dialogue: Value(draft.dialogue),
             reason: Value(draft.reason),
             characterNames: Value(draft.characters),
+            cameraMove: Value(draft.cameraMove),
+            durationMs: Value(draft.durationMs),
           ),
       ]);
     });
@@ -63,5 +65,7 @@ extension ShotToDraft on Shot {
     dialogue: dialogue,
     reason: reason,
     characters: characterNames,
+    cameraMove: cameraMove,
+    durationMs: durationMs,
   );
 }

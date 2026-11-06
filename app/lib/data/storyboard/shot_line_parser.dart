@@ -2,7 +2,9 @@ import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
 
+import '../models/camera_move.dart';
 import '../models/shot_draft.dart';
+import '../models/shot_duration.dart';
 import '../models/shot_size.dart';
 
 /// 单行解析结果：成功的镜头、需要重新生成的坏行，或可以忽略的行。
@@ -168,6 +170,13 @@ class ShotLineParser {
     }
     final reason = _text(json['reason']);
     if (reason.isEmpty) warnings.add('缺少拍摄理由');
+    var cameraMove = CameraMove.tryParse(json['cameraMove']);
+    if (cameraMove == null) {
+      cameraMove = CameraMove.fixed;
+      warnings.add('运镜无法识别，已按固定处理');
+    }
+    final durationMs = _durationMs(json['durationSec']);
+    if (json['durationSec'] != null && durationMs == null) warnings.add('时长无效，已按默认时长');
     final characters = switch (json['characters']) {
       final List<dynamic> list => [
         for (final name in list)
@@ -184,6 +193,8 @@ class ShotLineParser {
         dialogue: _text(json['dialogue']),
         reason: reason,
         characters: characters,
+        cameraMove: cameraMove,
+        durationMs: durationMs,
         warnings: warnings,
       ),
       repaired: repaired,
@@ -191,6 +202,13 @@ class ShotLineParser {
   }
 
   static String _text(Object? value) => value is String ? value.trim() : '';
+
+  /// 模型给的秒数换成毫秒；不是数字或超出 1–10 秒时返回 null，按默认规则推导。
+  static int? _durationMs(Object? value) {
+    if (value is! num || !value.isFinite) return null;
+    final ms = (value * 1000).round();
+    return ms < minShotDurationMs || ms > maxShotDurationMs ? null : ms;
+  }
 
   static Object? _tryDecode(String text) {
     try {

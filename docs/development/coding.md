@@ -12,6 +12,6 @@
 
 ## 生成代码
 
-- drift：`cd app && dart run build_runner build --delete-conflicting-outputs`，生成 `*.g.dart`。改表时同步 `schemaVersion`、迁移步骤和 `app/drift_schemas/` 快照。
+- drift：`cd app && dart run build_runner build --delete-conflicting-outputs`，生成 `*.g.dart`。改表时同步 `schemaVersion`、迁移步骤、`app/drift_schemas/` 快照和 `lib/data/db/schema_versions.dart`（见架构说明「改表流程」）。
 - Pigeon：接口定义在 `app/pigeons/`，用 `app/tool/generate_pigeon.sh` 重新生成 Dart / Kotlin / Swift 文件。
 - 生成文件不手改，改生成源后重新生成并检查 diff。

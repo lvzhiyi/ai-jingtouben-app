@@ -1,4 +1,4 @@
-import { buildStoryboardMessages, SHOT_SIZES } from './storyboard.prompt';
+import { buildStoryboardMessages, CAMERA_MOVES, SHOT_SIZES } from './storyboard.prompt';
 
 describe('buildStoryboardMessages', () => {
   it('系统提示列出全部景别并要求 JSON Lines', () => {
@@ -6,6 +6,13 @@ describe('buildStoryboardMessages', () => {
     expect(system.role).toBe('system');
     for (const size of SHOT_SIZES) expect(system.content).toContain(size);
     expect(system.content).toContain('JSON Lines');
+  });
+
+  it('系统提示列出全部运镜和时长字段', () => {
+    const [system] = buildStoryboardMessages({ story: '雨夜重逢', characters: [] });
+    for (const move of CAMERA_MOVES) expect(system.content).toContain(move);
+    expect(system.content).toContain('cameraMove');
+    expect(system.content).toContain('durationSec');
   });
 
   it('有角色卡时逐个列出外貌和服装，缺的字段不出现', () => {

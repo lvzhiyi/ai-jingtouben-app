@@ -58,6 +58,7 @@ Flutter 客户端 ──POST /storyboard/stream (SSE)──▶ NestJS 转发服�
 2. `dart run build_runner build --delete-conflicting-outputs`；
 3. `dart run drift_dev schema dump lib/data/db/app_database.dart drift_schemas/drift_schema_vN.json` 存下新版本快照；
 4. `dart run drift_dev schema generate drift_schemas/ test/generated_migrations/`，在 `test/data/migration_test.dart` 补一个从上一版升级的用例（插旧数据 → 迁移 → 校验结构和数据）。
+   同时 `dart run drift_dev schema steps drift_schemas/ lib/data/db/schema_versions.dart`，在 `app_database.dart` 的 `stepByStep` 里补 `fromNToN+1`，只用 `schema.xxx` 这份按版本生成的表定义写迁移，不要用当前表。
 
 ## 相对 course_student_app 的调整
 
@@ -95,3 +96,5 @@ Flutter 客户端 ──POST /storyboard/stream (SSE)──▶ NestJS 转发服�
 - **进度状态为什么由记录推导**：状态存一份冗余在 `shots.status` 里（以后同步、按状态查询都方便），但只有仓库在同一事务里按生成记录写它——没有记录是待生成、有记录没选定是生成中、选定一条是已选定。页面只能「记一次 / 选定 / 删除」，不会出现有选定记录、状态却是待生成这种对不上的情况。
 - **提示词不是不落库吗，为什么记录里存快照**：镜头卡上的提示词是「现在该怎么写」，随角色卡和模板实时变；生成记录是「那一次实际用了哪句」，是历史事实，要能回看哪种写法效果好，所以只在记录时存一份。
 - **组件测试卡在 tearDown 关库**：进度板控制器有两个 drift 订阅，`close` 里依次 await 取消时，第二个取消要等第一个在真实异步里收尾才开始，假时钟下永远等不到，关库就挂住；改成 `Future.wait` 同时取消。
+- **加列为什么用 stepByStep**：v3 给镜头加运镜和时长时，v1→v2 那步的老迁移突然挂了——它用的是当前的 `shots` 表定义重建表，会去复制 v1 里根本不存在的新列。改成 drift 的 `stepByStep`：每个版本生成一份冻结的表定义，每一步只针对那一版写，以后再加列老步骤也不受影响。迁移测试覆盖 v1→v2、v2→v3、v1→v3。
+- **时长为什么存可空、按规则推导**：旧数据和模型没给时长时存空，用到时按「对白字数 × 250 毫秒 + 1 秒，2–8 秒；无对白远景 3 秒其余 2 秒」推导，不回写库。加列不用回填数据，规则要调只改一个函数，界面上推导值标「约」和模型给的值区分开。

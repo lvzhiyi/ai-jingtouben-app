@@ -34,31 +34,21 @@
 - 涉及技术选型时，顺带一两句「面试中怎么讲」，好的讲法补进 [架构说明](docs/architecture.md) 的「面试讲法速记」。
 - 测到「要记录的数字」后，填进 README 的表格。
 
-## 冲刺进度（10/29–11/11，每推进一步更新这里）
+## 当前优先级
 
-- [x] 10/29 定位 + 一页技术方案（docs/architecture.md）
-- [x] 10/30 骨架、CI、转发服务：本机 app / server 验证命令通过，GitHub CI 在 625f1a4 上首次全绿
-- [x] 10/31 流式生成分镜：SSE 解码、拼行、逐行解析和分镜页；首字延迟已实测，见 README
-- [x] 11/1 UI 视觉改版：参考 iPhone App 的奶油白与浅粉渐变、大圆角卡片和黑色悬浮操作，统一项目首页与分镜工作台；app 静态分析及 24 个测试通过，Android 热重载成功
-- [~] 11/1 增量渲染 + 性能基线：正在写的镜头按半行 JSON 补齐后实时显示（`PartialShot` / `DraftingShot`）；`integration_test/storyboard_perf_test.dart` 回放固定流式输入，模拟器 UI 线程基线已填进 README，真机和 DevTools 实测待做
-- [x] 11/2 数据模型 + 本地存储：drift 表和仓库，schemaVersion 2（镜头出场角色改存名字），`drift_schemas/` 快照 + `test/data/migration_test.dart` 迁移测试
-- [x] 11/3 结构化分镜 + 角色卡 + 双平台提示词：角色卡页面（增删改、同项目不重名、最多 10 个，生成时带给模型，改名同步镜头）；镜头出场角色落库；镜头卡按「镜头 + 角色卡 + 模板」实时拼即梦 / 可灵提示词，一键复制
-- [ ] 11/4 周复盘 + 用户访谈
-- [x] 11/5 补测试，覆盖率进 CI（提前到 11/1）：app 92.7%（`tool/coverage.sh`，门槛 85%），server 行 98.8%（端到端起真实 HTTP 服务，门槛 90%）；补测试时修了两个 bug：故事不生成就不保存、模板加载覆盖输入中的故事
-- [~] 11/6 镜头进度板 + Pigeon 导出：进度板已完成（分镜页入口，按镜头记录每次即梦／可灵生成并存提示词快照、选定一次、改备注、删除，状态由记录推导，按状态筛选和进度条；有记录时重新生成先确认），app 86 测试、覆盖率 94.7%；11/6 在 Android 模拟器（Pixel 9 Pro XL，mock 转发服务）走通记录／选定／筛选／改备注／删除和重新生成确认清空，无运行时异常。Pigeon 29.1.0 原生文本分享已实现，Android 模拟器实测系统面板、Web 构建及 Chrome 分支测试通过；iOS 已接入但缺完整 Xcode 未编译
-- [x] 11/5 对接 ai-tools：分镜页「导出 JSON」（`storyboard_json.dart`），ai-tools 用 `studio import` 导入跑本地生成；两边联调通过，app 72 测试、覆盖率 93.4%
-- [ ] 11/7 性能优化 + 前后对比表
-- [ ] 镜头预演（排在 11/7 之后，完整档）：需求 [docs/product/需求/镜头预演.md](docs/product/需求/镜头预演.md)，模块卡 [docs/product/任务/镜头预演.md](docs/product/任务/镜头预演.md)（PV-R01～R05，待确认 Q1–Q6）
-- [ ] 11/8 README、演示视频、APK、Web 版
-- [ ] 11/9–11/11 简历、模拟面试、投递
+冲刺排期（10/29–11/11）已取消，不再按日期推进；已完成的工作见 git 历史和 README。
 
-下一步：在有完整 Xcode 的环境编译并验证 iOS／iPad 原生分享；11/4 周复盘 + 用户访谈；接真机跑一次「性能基线」并用 DevTools 看流式过程的帧图，补上真机数字。11/7 优化的候选：`items` 追加时整表复制和 Equatable 深比较、每个增量都做一次半行修复解析、新到镜头时整个列表重建、增量按帧合并。
+1. **镜头预演**（完整档，进行中）：需求 [docs/product/需求/镜头预演.md](docs/product/需求/镜头预演.md)，模块卡 [docs/product/任务/镜头预演.md](docs/product/任务/镜头预演.md)。顺序 PV-R01 → PV-R02 / PV-R03 → PV-R04 → PV-R05；Q1 / Q2 / Q5 / Q6 已确认（9:16、7 种运镜、单镜头只编辑景别和运镜、未知运镜提示不落库），Q3 / Q4 不阻塞。PV-R01（运镜 + 时长，schemaVersion 3）已实现、完整档验证通过，待验收；下一步 PV-R02 / PV-R03。
+2. 待办（不排期）：
+   - iOS／iPad 原生分享在完整 Xcode 环境编译验证（Pigeon 已接入）
+   - 真机性能基线 + DevTools 帧图；分镜流式性能优化候选：`items` 追加时整表复制和 Equatable 深比较、每个增量都做一次半行修复解析、新到镜头时整个列表重建、增量按帧合并
+   - 用户访谈；README、演示视频、APK、Web 版
 
 ## 工作流配置（ai-dev-workflow）
 
 - 产品文档根：无单独目录（项目首页：`README.md`）
 - 需求说明：`README.md`（产品背景与第一版范围）；功能需求见 `docs/product/需求/`
-- 任务卡目录 / 总览：`docs/product/任务/` / `AGENTS.md`「冲刺进度」
+- 任务卡目录 / 总览：`docs/product/任务/` / `AGENTS.md`「当前优先级」
 - 设计索引：无
 - 工程规范：架构 `docs/architecture.md`；代码 / UI / 接口见 `docs/development/` 下的 coding、ui、api-integration；验证见 `README.md`「验证」；约束见本文件「约束」
 - 规格工具：无

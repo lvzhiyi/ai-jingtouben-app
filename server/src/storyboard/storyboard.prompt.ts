@@ -1,6 +1,9 @@
 /** 景别枚举，必须与客户端 ShotSize.label 保持一致。 */
 export const SHOT_SIZES = ['大远景', '远景', '全景', '中景', '近景', '特写', '大特写'] as const;
 
+/** 运镜枚举，必须与客户端 CameraMove.label 保持一致。 */
+export const CAMERA_MOVES = ['固定', '推', '拉', '摇', '移', '跟', '升降'] as const;
+
 export interface StoryboardInput {
   story: string;
   characters: Array<{ name: string; appearance?: string; outfit?: string }>;
@@ -20,9 +23,11 @@ const SYSTEM_PROMPT = [
   '- dialogue：台词，没有台词输出空字符串',
   '- reason：为什么这样拍，面向新手解释镜头语言，30 字以内',
   '- characters：出场角色名数组，名称必须与角色列表一致',
+  `- cameraMove：运镜，只能是 ${CAMERA_MOVES.join('、')} 之一，镜头不动时写「固定」`,
+  '- durationSec：镜头时长（秒），1 到 10 之间的数字；有台词时要够把台词念完',
   '镜头数量 6 到 12 个，按剧情顺序输出。',
   // 示例只说明格式；场景和人名刻意与常见故事无关，避免模型把示例里的角色套进用户的故事
-  '格式示例（只示范字段写法，人物和情节必须来自用户的故事）：{"shotSize":"全景","scene":"清晨的车站站台，主角拖着行李箱走向检票口","dialogue":"","reason":"先交代时间、地点和人物处境","characters":["主角"]}',
+  '格式示例（只示范字段写法，人物和情节必须来自用户的故事）：{"shotSize":"全景","scene":"清晨的车站站台，主角拖着行李箱走向检票口","dialogue":"","reason":"先交代时间、地点和人物处境","characters":["主角"],"cameraMove":"跟","durationSec":3}',
 ].join('\n');
 
 export function buildStoryboardMessages(input: StoryboardInput): ChatMessage[] {

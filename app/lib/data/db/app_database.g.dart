@@ -910,6 +910,25 @@ class $ShotsTable extends Shots with TableInfo<$ShotsTable, Shot> {
     defaultValue: Constant(ShotStatus.pending.name),
   ).withConverter<ShotStatus>($ShotsTable.$converterstatus);
   @override
+  late final GeneratedColumnWithTypeConverter<CameraMove, String> cameraMove =
+      GeneratedColumn<String>(
+        'camera_move',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: Constant(CameraMove.fixed.name),
+      ).withConverter<CameraMove>($ShotsTable.$convertercameraMove);
+  static const VerificationMeta _durationMsMeta = const VerificationMeta('durationMs');
+  @override
+  late final GeneratedColumn<int> durationMs = GeneratedColumn<int>(
+    'duration_ms',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
   List<GeneratedColumn> get $columns => [
     updatedAt,
     remoteId,
@@ -922,6 +941,8 @@ class $ShotsTable extends Shots with TableInfo<$ShotsTable, Shot> {
     reason,
     characterNames,
     status,
+    cameraMove,
+    durationMs,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -979,6 +1000,12 @@ class $ShotsTable extends Shots with TableInfo<$ShotsTable, Shot> {
     if (data.containsKey('reason')) {
       context.handle(_reasonMeta, reason.isAcceptableOrUnknown(data['reason']!, _reasonMeta));
     }
+    if (data.containsKey('duration_ms')) {
+      context.handle(
+        _durationMsMeta,
+        durationMs.isAcceptableOrUnknown(data['duration_ms']!, _durationMsMeta),
+      );
+    }
     return context;
   }
 
@@ -1032,6 +1059,16 @@ class $ShotsTable extends Shots with TableInfo<$ShotsTable, Shot> {
       status: $ShotsTable.$converterstatus.fromSql(
         attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}status'])!,
       ),
+      cameraMove: $ShotsTable.$convertercameraMove.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}camera_move'],
+        )!,
+      ),
+      durationMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_ms'],
+      ),
     );
   }
 
@@ -1045,6 +1082,8 @@ class $ShotsTable extends Shots with TableInfo<$ShotsTable, Shot> {
   static TypeConverter<List<String>, String> $convertercharacterNames = const StringListConverter();
   static JsonTypeConverter2<ShotStatus, String, String> $converterstatus =
       const EnumNameConverter<ShotStatus>(ShotStatus.values);
+  static JsonTypeConverter2<CameraMove, String, String> $convertercameraMove =
+      const EnumNameConverter<CameraMove>(CameraMove.values);
 }
 
 class Shot extends DataClass implements Insertable<Shot> {
@@ -1064,6 +1103,12 @@ class Shot extends DataClass implements Insertable<Shot> {
   /// 拼提示词时再按名字匹配角色卡，角色卡改名时由仓库同步改这里。
   final List<String> characterNames;
   final ShotStatus status;
+
+  /// v3 新增。旧镜头迁移后为「固定」。
+  final CameraMove cameraMove;
+
+  /// v3 新增，毫秒。为空时按默认规则推导，不回写。
+  final int? durationMs;
   const Shot({
     required this.updatedAt,
     this.remoteId,
@@ -1076,6 +1121,8 @@ class Shot extends DataClass implements Insertable<Shot> {
     required this.reason,
     required this.characterNames,
     required this.status,
+    required this.cameraMove,
+    this.durationMs,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1101,6 +1148,12 @@ class Shot extends DataClass implements Insertable<Shot> {
     {
       map['status'] = Variable<String>($ShotsTable.$converterstatus.toSql(status));
     }
+    {
+      map['camera_move'] = Variable<String>($ShotsTable.$convertercameraMove.toSql(cameraMove));
+    }
+    if (!nullToAbsent || durationMs != null) {
+      map['duration_ms'] = Variable<int>(durationMs);
+    }
     return map;
   }
 
@@ -1117,6 +1170,8 @@ class Shot extends DataClass implements Insertable<Shot> {
       reason: Value(reason),
       characterNames: Value(characterNames),
       status: Value(status),
+      cameraMove: Value(cameraMove),
+      durationMs: durationMs == null && nullToAbsent ? const Value.absent() : Value(durationMs),
     );
   }
 
@@ -1136,6 +1191,10 @@ class Shot extends DataClass implements Insertable<Shot> {
       reason: serializer.fromJson<String>(json['reason']),
       characterNames: serializer.fromJson<List<String>>(json['characterNames']),
       status: $ShotsTable.$converterstatus.fromJson(serializer.fromJson<String>(json['status'])),
+      cameraMove: $ShotsTable.$convertercameraMove.fromJson(
+        serializer.fromJson<String>(json['cameraMove']),
+      ),
+      durationMs: serializer.fromJson<int?>(json['durationMs']),
     );
   }
   @override
@@ -1153,6 +1212,8 @@ class Shot extends DataClass implements Insertable<Shot> {
       'reason': serializer.toJson<String>(reason),
       'characterNames': serializer.toJson<List<String>>(characterNames),
       'status': serializer.toJson<String>($ShotsTable.$converterstatus.toJson(status)),
+      'cameraMove': serializer.toJson<String>($ShotsTable.$convertercameraMove.toJson(cameraMove)),
+      'durationMs': serializer.toJson<int?>(durationMs),
     };
   }
 
@@ -1168,6 +1229,8 @@ class Shot extends DataClass implements Insertable<Shot> {
     String? reason,
     List<String>? characterNames,
     ShotStatus? status,
+    CameraMove? cameraMove,
+    Value<int?> durationMs = const Value.absent(),
   }) => Shot(
     updatedAt: updatedAt ?? this.updatedAt,
     remoteId: remoteId.present ? remoteId.value : this.remoteId,
@@ -1180,6 +1243,8 @@ class Shot extends DataClass implements Insertable<Shot> {
     reason: reason ?? this.reason,
     characterNames: characterNames ?? this.characterNames,
     status: status ?? this.status,
+    cameraMove: cameraMove ?? this.cameraMove,
+    durationMs: durationMs.present ? durationMs.value : this.durationMs,
   );
   Shot copyWithCompanion(ShotsCompanion data) {
     return Shot(
@@ -1194,6 +1259,8 @@ class Shot extends DataClass implements Insertable<Shot> {
       reason: data.reason.present ? data.reason.value : this.reason,
       characterNames: data.characterNames.present ? data.characterNames.value : this.characterNames,
       status: data.status.present ? data.status.value : this.status,
+      cameraMove: data.cameraMove.present ? data.cameraMove.value : this.cameraMove,
+      durationMs: data.durationMs.present ? data.durationMs.value : this.durationMs,
     );
   }
 
@@ -1210,7 +1277,9 @@ class Shot extends DataClass implements Insertable<Shot> {
           ..write('dialogue: $dialogue, ')
           ..write('reason: $reason, ')
           ..write('characterNames: $characterNames, ')
-          ..write('status: $status')
+          ..write('status: $status, ')
+          ..write('cameraMove: $cameraMove, ')
+          ..write('durationMs: $durationMs')
           ..write(')'))
         .toString();
   }
@@ -1228,6 +1297,8 @@ class Shot extends DataClass implements Insertable<Shot> {
     reason,
     characterNames,
     status,
+    cameraMove,
+    durationMs,
   );
   @override
   bool operator ==(Object other) =>
@@ -1243,7 +1314,9 @@ class Shot extends DataClass implements Insertable<Shot> {
           other.dialogue == this.dialogue &&
           other.reason == this.reason &&
           other.characterNames == this.characterNames &&
-          other.status == this.status);
+          other.status == this.status &&
+          other.cameraMove == this.cameraMove &&
+          other.durationMs == this.durationMs);
 }
 
 class ShotsCompanion extends UpdateCompanion<Shot> {
@@ -1258,6 +1331,8 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
   final Value<String> reason;
   final Value<List<String>> characterNames;
   final Value<ShotStatus> status;
+  final Value<CameraMove> cameraMove;
+  final Value<int?> durationMs;
   final Value<int> rowid;
   const ShotsCompanion({
     this.updatedAt = const Value.absent(),
@@ -1271,6 +1346,8 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
     this.reason = const Value.absent(),
     this.characterNames = const Value.absent(),
     this.status = const Value.absent(),
+    this.cameraMove = const Value.absent(),
+    this.durationMs = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ShotsCompanion.insert({
@@ -1285,6 +1362,8 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
     this.reason = const Value.absent(),
     this.characterNames = const Value.absent(),
     this.status = const Value.absent(),
+    this.cameraMove = const Value.absent(),
+    this.durationMs = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        projectId = Value(projectId),
@@ -1303,6 +1382,8 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
     Expression<String>? reason,
     Expression<String>? characterNames,
     Expression<String>? status,
+    Expression<String>? cameraMove,
+    Expression<int>? durationMs,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1317,6 +1398,8 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
       if (reason != null) 'reason': reason,
       if (characterNames != null) 'character_names': characterNames,
       if (status != null) 'status': status,
+      if (cameraMove != null) 'camera_move': cameraMove,
+      if (durationMs != null) 'duration_ms': durationMs,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1333,6 +1416,8 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
     Value<String>? reason,
     Value<List<String>>? characterNames,
     Value<ShotStatus>? status,
+    Value<CameraMove>? cameraMove,
+    Value<int?>? durationMs,
     Value<int>? rowid,
   }) {
     return ShotsCompanion(
@@ -1347,6 +1432,8 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
       reason: reason ?? this.reason,
       characterNames: characterNames ?? this.characterNames,
       status: status ?? this.status,
+      cameraMove: cameraMove ?? this.cameraMove,
+      durationMs: durationMs ?? this.durationMs,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1389,6 +1476,14 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
     if (status.present) {
       map['status'] = Variable<String>($ShotsTable.$converterstatus.toSql(status.value));
     }
+    if (cameraMove.present) {
+      map['camera_move'] = Variable<String>(
+        $ShotsTable.$convertercameraMove.toSql(cameraMove.value),
+      );
+    }
+    if (durationMs.present) {
+      map['duration_ms'] = Variable<int>(durationMs.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1409,6 +1504,8 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
           ..write('reason: $reason, ')
           ..write('characterNames: $characterNames, ')
           ..write('status: $status, ')
+          ..write('cameraMove: $cameraMove, ')
+          ..write('durationMs: $durationMs, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2833,6 +2930,8 @@ typedef $$ShotsTableCreateCompanionBuilder = ShotsCompanion Function({
   Value<String> reason,
   Value<List<String>> characterNames,
   Value<ShotStatus> status,
+  Value<CameraMove> cameraMove,
+  Value<int?> durationMs,
   Value<int> rowid,
 });
 typedef $$ShotsTableUpdateCompanionBuilder = ShotsCompanion Function({
@@ -2847,6 +2946,8 @@ typedef $$ShotsTableUpdateCompanionBuilder = ShotsCompanion Function({
   Value<String> reason,
   Value<List<String>> characterNames,
   Value<ShotStatus> status,
+  Value<CameraMove> cameraMove,
+  Value<int?> durationMs,
   Value<int> rowid,
 });
 
@@ -2928,6 +3029,15 @@ class $$ShotsTableFilterComposer extends Composer<_$AppDatabase, $ShotsTable> {
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
+  ColumnWithTypeConverterFilters<CameraMove, CameraMove, String> get cameraMove =>
+      $composableBuilder(
+        column: $table.cameraMove,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<int> get durationMs =>
+      $composableBuilder(column: $table.durationMs, builder: (column) => ColumnFilters(column));
+
   $$ProjectsTableFilterComposer get projectId {
     final $$ProjectsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -3007,6 +3117,12 @@ class $$ShotsTableOrderingComposer extends Composer<_$AppDatabase, $ShotsTable> 
   ColumnOrderings<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get cameraMove =>
+      $composableBuilder(column: $table.cameraMove, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get durationMs =>
+      $composableBuilder(column: $table.durationMs, builder: (column) => ColumnOrderings(column));
+
   $$ProjectsTableOrderingComposer get projectId {
     final $$ProjectsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -3063,6 +3179,12 @@ class $$ShotsTableAnnotationComposer extends Composer<_$AppDatabase, $ShotsTable
 
   GeneratedColumnWithTypeConverter<ShotStatus, String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<CameraMove, String> get cameraMove =>
+      $composableBuilder(column: $table.cameraMove, builder: (column) => column);
+
+  GeneratedColumn<int> get durationMs =>
+      $composableBuilder(column: $table.durationMs, builder: (column) => column);
 
   $$ProjectsTableAnnotationComposer get projectId {
     final $$ProjectsTableAnnotationComposer composer = $composerBuilder(
@@ -3139,6 +3261,8 @@ class $$ShotsTableTableManager
                 Value<String> reason = const Value.absent(),
                 Value<List<String>> characterNames = const Value.absent(),
                 Value<ShotStatus> status = const Value.absent(),
+                Value<CameraMove> cameraMove = const Value.absent(),
+                Value<int?> durationMs = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ShotsCompanion(
                 updatedAt: updatedAt,
@@ -3152,6 +3276,8 @@ class $$ShotsTableTableManager
                 reason: reason,
                 characterNames: characterNames,
                 status: status,
+                cameraMove: cameraMove,
+                durationMs: durationMs,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -3167,6 +3293,8 @@ class $$ShotsTableTableManager
                 Value<String> reason = const Value.absent(),
                 Value<List<String>> characterNames = const Value.absent(),
                 Value<ShotStatus> status = const Value.absent(),
+                Value<CameraMove> cameraMove = const Value.absent(),
+                Value<int?> durationMs = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ShotsCompanion.insert(
                 updatedAt: updatedAt,
@@ -3180,6 +3308,8 @@ class $$ShotsTableTableManager
                 reason: reason,
                 characterNames: characterNames,
                 status: status,
+                cameraMove: cameraMove,
+                durationMs: durationMs,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
