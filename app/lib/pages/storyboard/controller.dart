@@ -185,6 +185,9 @@ class StoryboardController extends Bloc<StoryboardEvent, StoryboardState> {
     await _shots.replaceAll(projectId, state.drafts);
   }
 
+  /// 进度板上是否记过生成。重新生成会替换全部镜头、清掉这些记录，页面据此先让用户确认。
+  Future<bool> hasProgress() => _shots.hasProgress(projectId);
+
   /// 离开页面时把停顿期内还没写库的故事存下来。
   @override
   Future<void> close() async {

@@ -35,6 +35,7 @@ class _JingtoubenAppState extends State<JingtoubenApp> {
       providers: [
         RepositoryProvider.value(value: dependencies.projects),
         RepositoryProvider.value(value: dependencies.shots),
+        RepositoryProvider.value(value: dependencies.progress),
         RepositoryProvider.value(value: dependencies.characters),
         RepositoryProvider.value(value: dependencies.storyboard),
         RepositoryProvider.value(value: dependencies.templates),

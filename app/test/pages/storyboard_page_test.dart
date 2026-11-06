@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:jingtouben/data/models/character_profile.dart';
 import 'package:jingtouben/data/models/shot_draft.dart';
 import 'package:jingtouben/data/models/shot_size.dart';
+import 'package:jingtouben/data/models/video_platform.dart';
 import 'package:jingtouben/data/storyboard/shot_line_parser.dart';
 import 'package:jingtouben/data/storyboard/storyboard_api.dart';
 import 'package:jingtouben/net/api_exception.dart';
@@ -131,6 +132,49 @@ void main() {
 
     await tester.tap(find.text('停止'));
     await pumpUntilFound(tester, find.text('已停止，收到 1 个镜头'));
+
+    await env.unmount(tester);
+  });
+
+  testWidgets('进度板上记过生成时，重新生成前先确认；取消则不发请求', (tester) async {
+    await tester.runAsync(() async {
+      await env.shots.replaceAll(projectId, const [
+        ShotDraft(index: 0, shotSize: ShotSize.full, scene: '街口'),
+      ]);
+      final shotId = (await env.progress.watchProject(projectId).first).single.shotId;
+      await env.progress.record(shotId: shotId, platform: VideoPlatform.jimeng, prompt: '全景，街口');
+    });
+    await pumpPage(tester, story: '雨夜，林夏在老街等一个不会来的人。');
+    await pumpUntilFound(tester, find.text('重新生成'));
+
+    await tester.tap(find.text('重新生成'));
+    await pumpUntilFound(tester, find.text('重新生成分镜？'));
+    await tester.tap(find.text('取消'));
+    await tester.pumpAndSettle();
+    expect(api.calls, isEmpty);
+    expect(find.text('街口'), findsOneWidget);
+
+    await tester.tap(find.text('重新生成'));
+    await pumpUntilFound(tester, find.text('重新生成分镜？'));
+    await tester.tap(find.widgetWithText(FilledButton, '重新生成').last);
+    await pumpUntilFound(tester, find.text('正在连接…'));
+    expect(api.calls, hasLength(1));
+
+    await env.unmount(tester);
+  });
+
+  testWidgets('没有生成记录时重新生成不弹确认', (tester) async {
+    await tester.runAsync(
+      () => env.shots.replaceAll(projectId, const [
+        ShotDraft(index: 0, shotSize: ShotSize.full, scene: '街口'),
+      ]),
+    );
+    await pumpPage(tester, story: '雨夜，林夏在老街等一个不会来的人。');
+    await pumpUntilFound(tester, find.text('重新生成'));
+
+    await tester.tap(find.text('重新生成'));
+    await pumpUntilFound(tester, find.text('正在连接…'));
+    expect(find.text('重新生成分镜？'), findsNothing);
 
     await env.unmount(tester);
   });

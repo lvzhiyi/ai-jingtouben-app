@@ -45,6 +45,13 @@ Flutter 客户端 ──POST /storyboard/stream (SSE)──▶ NestJS 转发服�
 4. 只有收到 `done` 的完整结果才在事务里整体写库；取消或失败保留上一次的完整结果。
 5. 增量渲染：每个 delta 之后，`LineAccumulator.pending` 里还没写完的半行借用 `ShotLineParser.repair` 补齐引号和括号，读出已经写出来的字段（`PartialShot`），内容变了才发 `ShotDrafting`。状态里单独放 `drafting`，只有列表末尾的 `DraftingShot` 订阅它，高频重建不碰已完成的镜头。
 
+## 镜头进度板
+
+- 进度板只读写 `generations`：`ProgressRepository.watchProject` 用一条 `shots LEFT JOIN generations` 的查询订阅，任一张表变化都会推送；记录、选定、删除都在事务里按生成记录重新推导 `shots.status` 并写回，页面不直接改状态。
+- 每条记录存下当时的提示词快照：提示词平时实时拼接、不落库，但「当时用了哪句」是事实，之后角色卡或模板变了也要能回看。
+- 提示词拼接统一走 `PromptBuilder.buildAll`，分镜页、分享和进度板快照用的是同一句。
+- 重新生成会 `replaceAll` 全部镜头，生成记录随外键级联删除；有记录时分镜页先确认。
+
 ## 改表流程
 
 1. 改 `tables.dart`，`schemaVersion` 加 1，在 `migration.onUpgrade` 里写 `if (from < N)` 的升级步骤；
@@ -85,3 +92,6 @@ Flutter 客户端 ──POST /storyboard/stream (SSE)──▶ NestJS 转发服�
 
 - **为什么用 Pigeon 做分享**：这是一个小而完整的 Flutter 与原生协作边界：Dart 组织文本，Pigeon 从单一接口生成三端编解码，Kotlin 用 ACTION_SEND、Swift 用 UIActivityViewController，避免手写通道名和参数解析。Web 没有原生宿主，走剪贴板。相比现成分享插件多了平台维护成本，但这次明确选择它来展示类型安全的平台互操作；接口只传标题和文本，不把业务或数据库放进原生层。
 - **分享完成如何定义**：通道返回只代表系统面板展示，不能宣称已发送；取消面板不弹成功提示。Web 只有 Clipboard.setData 成功才提示已复制。按钮取点击瞬间的状态，生成中禁用，不分享半行 JSON，坏行过滤并标注结果不完整。
+- **进度状态为什么由记录推导**：状态存一份冗余在 `shots.status` 里（以后同步、按状态查询都方便），但只有仓库在同一事务里按生成记录写它——没有记录是待生成、有记录没选定是生成中、选定一条是已选定。页面只能「记一次 / 选定 / 删除」，不会出现有选定记录、状态却是待生成这种对不上的情况。
+- **提示词不是不落库吗，为什么记录里存快照**：镜头卡上的提示词是「现在该怎么写」，随角色卡和模板实时变；生成记录是「那一次实际用了哪句」，是历史事实，要能回看哪种写法效果好，所以只在记录时存一份。
+- **组件测试卡在 tearDown 关库**：进度板控制器有两个 drift 订阅，`close` 里依次 await 取消时，第二个取消要等第一个在真实异步里收尾才开始，假时钟下永远等不到，关库就挂住；改成 `Future.wait` 同时取消。

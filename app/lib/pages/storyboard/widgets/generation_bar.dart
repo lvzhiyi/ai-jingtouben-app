@@ -32,9 +32,7 @@ class GenerationBar extends StatelessWidget {
                 )
               else
                 FilledButton.icon(
-                  onPressed: state.canGenerate
-                      ? () => controller.add(const GenerationRequested())
-                      : null,
+                  onPressed: state.canGenerate ? () => _generate(context) : null,
                   icon: const Icon(Icons.auto_awesome),
                   label: Text(state.items.isEmpty ? '生成分镜' : '重新生成'),
                 ),
@@ -49,6 +47,30 @@ class GenerationBar extends StatelessWidget {
         );
       },
     );
+  }
+
+  /// 已经在进度板上记过生成时，重新生成前先确认：新分镜会替换全部镜头，记录随之清空。
+  static Future<void> _generate(BuildContext context) async {
+    final controller = context.read<StoryboardController>();
+    if (await controller.hasProgress()) {
+      if (!context.mounted) return;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('重新生成分镜？'),
+          content: const Text('新分镜会替换现在的全部镜头，进度板上的生成记录和选定结果会一起清空。'),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('取消')),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('重新生成'),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+    }
+    controller.add(const GenerationRequested());
   }
 
   static String _status(StoryboardState state) {

@@ -55,6 +55,12 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('初恋'), findsOneWidget);
 
+    // 进度板：还没生成分镜时提示先去生成
+    await tester.pageBack();
+    await pumpUntilFound(tester, find.text('故事的起点'));
+    await tester.tap(find.byTooltip('镜头进度板'));
+    await pumpUntilFound(tester, find.text('还没有分镜'));
+
     // 回到分镜页写故事，不生成直接返回首页：离开页面时故事已保存，列表里能看到摘要
     await tester.pageBack();
     await pumpUntilFound(tester, find.text('故事的起点'));

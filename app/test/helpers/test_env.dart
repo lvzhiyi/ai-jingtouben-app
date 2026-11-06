@@ -8,6 +8,7 @@ import 'package:http/testing.dart';
 import 'package:jingtouben/data/db/app_database.dart';
 import 'package:jingtouben/data/prompt/template_repository.dart';
 import 'package:jingtouben/data/repositories/character_repository.dart';
+import 'package:jingtouben/data/repositories/progress_repository.dart';
 import 'package:jingtouben/data/repositories/project_repository.dart';
 import 'package:jingtouben/data/repositories/shot_repository.dart';
 import 'package:jingtouben/data/storyboard/storyboard_api.dart';
@@ -25,6 +26,7 @@ class TestEnv {
   TestEnv._(this.db, this.api)
     : projects = ProjectRepository(db),
       shots = ShotRepository(db),
+      progress = ProgressRepository(db),
       characters = CharacterRepository(db),
       templates = TemplateRepository(
         // 服务端不可用，走内置模板
@@ -43,6 +45,7 @@ class TestEnv {
   final StoryboardApi api;
   final ProjectRepository projects;
   final ShotRepository shots;
+  final ProgressRepository progress;
   final CharacterRepository characters;
   final TemplateRepository templates;
 
@@ -51,6 +54,7 @@ class TestEnv {
     providers: [
       RepositoryProvider.value(value: projects),
       RepositoryProvider.value(value: shots),
+      RepositoryProvider.value(value: progress),
       RepositoryProvider.value(value: characters),
       RepositoryProvider.value(value: api),
       RepositoryProvider.value(value: templates),

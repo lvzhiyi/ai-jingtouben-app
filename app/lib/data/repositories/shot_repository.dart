@@ -37,17 +37,25 @@ class ShotRepository {
     });
   });
 
-  Future<void> updateStatus(String shotId, ShotStatus status) =>
-      (_db.update(_db.shots)..where((t) => t.id.equals(shotId))).write(
-        ShotsCompanion(status: Value(status), updatedAt: Value(DateTime.now())),
-      );
+  /// 是否已经在进度板上记过生成。重新生成会替换全部镜头并级联删除生成记录，页面据此先确认。
+  Future<bool> hasProgress(String projectId) async {
+    final query = _db.selectOnly(_db.shots)
+      ..addColumns([_db.shots.id])
+      ..where(
+        _db.shots.projectId.equals(projectId) &
+            _db.shots.status.equalsValue(ShotStatus.pending).not(),
+      )
+      ..limit(1);
+    return (await query.get()).isNotEmpty;
+  }
 
   SimpleSelectStatement<$ShotsTable, Shot> _byProject(String projectId) => _db.select(_db.shots)
     ..where((t) => t.projectId.equals(projectId))
     ..orderBy([(t) => OrderingTerm.asc(t.sortOrder)]);
 }
 
-extension on Shot {
+/// 存储层的镜头转成页面使用的镜头内容。
+extension ShotToDraft on Shot {
   ShotDraft toDraft() => ShotDraft(
     index: sortOrder,
     shotSize: shotSize,

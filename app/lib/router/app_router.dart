@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 
 import '../pages/characters/page.dart';
+import '../pages/progress/page.dart';
 import '../pages/projects/page.dart';
 import '../pages/storyboard/page.dart';
 
@@ -20,6 +21,10 @@ GoRouter createRouter() => GoRouter(
             GoRoute(
               path: 'characters',
               builder: (_, state) => CharactersPage(projectId: state.pathParameters['projectId']!),
+            ),
+            GoRoute(
+              path: 'progress',
+              builder: (_, state) => ProgressPage(projectId: state.pathParameters['projectId']!),
             ),
           ],
         ),

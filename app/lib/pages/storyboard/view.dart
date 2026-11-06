@@ -34,6 +34,13 @@ class StoryboardView extends StatelessWidget {
             ShareButton(share: share),
             ExportButton(share: share),
             IconButton(
+              tooltip: '镜头进度板',
+              icon: const Icon(Icons.view_kanban_outlined),
+              onPressed: () => context.push(
+                '/projects/${context.read<StoryboardController>().projectId}/progress',
+              ),
+            ),
+            IconButton(
               tooltip: '角色卡',
               icon: const Icon(Icons.people_alt_outlined),
               onPressed: () => context.push(

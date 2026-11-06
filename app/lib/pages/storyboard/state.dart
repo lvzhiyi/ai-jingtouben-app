@@ -66,27 +66,10 @@ class StoryboardState extends Equatable {
   ];
 
   /// 按「镜头 + 角色卡 + 平台模板」实时拼出各平台的提示词，不落库。
-  /// 出场角色按名字匹配角色卡；没有角色卡的人物只写名字。
   Map<VideoPlatform, String> promptsFor(ShotDraft shot) {
     final templates = this.templates;
     if (templates == null) return const {};
-    final profiles = [
-      for (final name in shot.characters)
-        characters.firstWhere(
-          (profile) => profile.name == name,
-          orElse: () => CharacterProfile(name: name),
-        ),
-    ];
-    return {
-      for (final MapEntry(key: platform, value: template) in templates.templates.entries)
-        platform: const PromptBuilder().build(
-          template: template,
-          shotSize: shot.shotSize,
-          scene: shot.scene,
-          dialogue: shot.dialogue,
-          characters: profiles,
-        ),
-    };
+    return const PromptBuilder().buildAll(templates: templates, shot: shot, characters: characters);
   }
 
   /// 可空字段用函数包一层，以便显式置空。
