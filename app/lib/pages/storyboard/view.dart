@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../resources/theme.dart';
 import '../../data/share/storyboard_share.dart';
 import 'widgets/export_button.dart';
+import 'widgets/preview_button.dart';
 import 'widgets/share_button.dart';
 import 'controller.dart';
 import 'state.dart';
@@ -31,6 +32,7 @@ class StoryboardView extends StatelessWidget {
         appBar: AppBar(
           title: Text(state.title.isEmpty ? '分镜' : state.title),
           actions: [
+            const PreviewButton(),
             ShareButton(share: share),
             ExportButton(share: share),
             IconButton(

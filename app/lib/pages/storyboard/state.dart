@@ -58,6 +58,9 @@ class StoryboardState extends Equatable {
   /// 提示词模板；加载完成前为 null，镜头卡不显示提示词。
   final PromptTemplateSet? templates;
 
+  /// 只预演生成完成且已落库的结果：生成中是半成品，取消或失败时页面上的结果没有保存，和库里对不上。
+  bool get canPreview => phase == GenerationPhase.done && items.any((item) => item is ParsedShot);
+
   bool get canGenerate => !phase.isActive && story.trim().length >= minStoryLength;
 
   List<ShotDraft> get drafts => [

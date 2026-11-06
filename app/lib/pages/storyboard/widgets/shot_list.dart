@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../data/storyboard/shot_line_parser.dart';
 import '../../../resources/theme.dart';
@@ -18,7 +19,8 @@ class ShotList extends StatelessWidget {
       buildWhen: (previous, current) =>
           previous.items != current.items ||
           previous.characters != current.characters ||
-          previous.templates != current.templates,
+          previous.templates != current.templates ||
+          previous.canPreview != current.canPreview,
       builder: (context, state) {
         final items = state.items;
         return SliverPadding(
@@ -31,6 +33,12 @@ class ShotList extends StatelessWidget {
                 key: ValueKey('shot-${shot.index}'),
                 shot: shot,
                 prompts: state.promptsFor(shot),
+                onPreview: state.canPreview
+                    ? () => context.push(
+                        '/projects/${context.read<StoryboardController>().projectId}'
+                        '/preview?shot=${shot.index}',
+                      )
+                    : null,
               ),
               BrokenShot broken => BrokenShotCard(
                 key: ValueKey('broken-${broken.index}'),

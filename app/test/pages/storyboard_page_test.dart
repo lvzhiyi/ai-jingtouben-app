@@ -178,4 +178,44 @@ void main() {
 
     await env.unmount(tester);
   });
+
+  testWidgets('预演入口：生成中和停止后禁用，生成完成后可用并显示「从这里预演」', (tester) async {
+    await pumpPage(tester, story: '雨夜，林夏在老街等一个不会来的人。');
+    IconButton previewButton() =>
+        tester.widget<IconButton>(find.widgetWithIcon(IconButton, Icons.slideshow_outlined));
+    expect(previewButton().onPressed, isNull);
+
+    await tester.tap(find.text('生成分镜'));
+    await pumpUntilFound(tester, find.text('正在连接…'));
+    api.calls.single
+      ..add(const FirstTokenArrived(Duration(milliseconds: 300)))
+      ..add(
+        const ShotLineArrived(
+          ParsedShot(ShotDraft(index: 0, shotSize: ShotSize.full, scene: '街口')),
+        ),
+      );
+    await pumpUntilFound(tester, find.text('街口'));
+    expect(previewButton().onPressed, isNull);
+    expect(find.byTooltip('生成完成后可预演'), findsOneWidget);
+    expect(find.text('从这里预演'), findsNothing);
+
+    await tester.tap(find.text('停止'));
+    await pumpUntilFound(tester, find.text('已停止，收到 1 个镜头'));
+    expect(previewButton().onPressed, isNull);
+
+    await tester.tap(find.text('重新生成'));
+    await pumpUntilFound(tester, find.text('正在连接…'));
+    api.calls.last
+      ..add(
+        const ShotLineArrived(
+          ParsedShot(ShotDraft(index: 0, shotSize: ShotSize.full, scene: '老街')),
+        ),
+      )
+      ..add(const GenerationCompleted());
+    await pumpUntilFound(tester, find.text('从这里预演'));
+    expect(previewButton().onPressed, isNotNull);
+    expect(find.byTooltip('镜头预演'), findsOneWidget);
+
+    await env.unmount(tester);
+  });
 }

@@ -13,12 +13,15 @@ String _motionText(ShotDraft shot) {
 
 /// 一个镜头：序号、景别、运镜与时长、画面、台词、出场角色、「为什么这样拍」和各平台的视频提示词。
 class ShotCard extends StatelessWidget {
-  const ShotCard({super.key, required this.shot, this.prompts = const {}});
+  const ShotCard({super.key, required this.shot, this.prompts = const {}, this.onPreview});
 
   final ShotDraft shot;
 
   /// 各平台拼好的提示词，为空时不显示提示词区域。
   final Map<VideoPlatform, String> prompts;
+
+  /// 「从这里预演」；为空时不显示（生成中、未保存时不能预演）。
+  final VoidCallback? onPreview;
 
   @override
   Widget build(BuildContext context) {
@@ -85,6 +88,18 @@ class ShotCard extends StatelessWidget {
                 ),
               ),
             if (prompts.isNotEmpty) ...[const SizedBox(height: 20), ShotPrompts(prompts: prompts)],
+            if (onPreview != null)
+              Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: TextButton.icon(
+                    onPressed: onPreview,
+                    icon: const Icon(Icons.play_circle_outline_rounded),
+                    label: const Text('从这里预演'),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

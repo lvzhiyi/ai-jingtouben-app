@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jingtouben/data/models/shot_draft.dart';
+import 'package:jingtouben/data/models/shot_size.dart';
 import 'package:jingtouben/data/storyboard/storyboard_api.dart';
 import 'package:jingtouben/resources/theme.dart';
 import 'package:jingtouben/router/app_router.dart';
@@ -69,6 +73,39 @@ void main() {
     await tester.pageBack();
     await pumpUntilFound(tester, find.text('雨夜，林夏在老街等一个不会来的人。'));
     expect(find.text('继续创作 →'), findsOneWidget);
+
+    await env.unmount(tester);
+  });
+
+  testWidgets('分镜页点「从这里预演」进入预演页并从该镜头开始，顶栏入口从第一镜开始', (tester) async {
+    late String projectId;
+    await tester.runAsync(() async {
+      projectId = await env.projects.create('雨夜重逢');
+      await env.projects.updateStory(projectId, '雨夜，林夏在老街等一个不会来的人。');
+      await env.shots.replaceAll(projectId, const [
+        ShotDraft(index: 0, shotSize: ShotSize.full, scene: '老街'),
+        ShotDraft(index: 1, shotSize: ShotSize.closeUp, scene: '回头'),
+      ]);
+    });
+    tester.view.physicalSize = const Size(800, 3000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final router = createRouter();
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      env.provide(MaterialApp.router(theme: AppTheme.light(), routerConfig: router)),
+    );
+    await pumpUntilFound(tester, find.text('继续创作 →'));
+    unawaited(router.push('/projects/$projectId'));
+    await pumpUntilFound(tester, find.text('从这里预演'));
+
+    await tester.tap(find.text('从这里预演').last);
+    await pumpUntilFound(tester, find.text('镜头 2 / 2 · 特写 · 固定'));
+
+    await tester.pageBack();
+    await pumpUntilFound(tester, find.byTooltip('镜头预演'));
+    await tester.tap(find.byTooltip('镜头预演'));
+    await pumpUntilFound(tester, find.textContaining('镜头 1 / 2'));
 
     await env.unmount(tester);
   });

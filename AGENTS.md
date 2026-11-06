@@ -38,7 +38,7 @@
 
 冲刺排期（10/29–11/11）已取消，不再按日期推进；已完成的工作见 git 历史和 README。
 
-1. **镜头预演**（完整档，进行中）：需求 [docs/product/需求/镜头预演.md](docs/product/需求/镜头预演.md)，模块卡 [docs/product/任务/镜头预演.md](docs/product/任务/镜头预演.md)。顺序 PV-R01 → PV-R02 / PV-R03 → PV-R04 → PV-R05；Q1 / Q2 / Q5 / Q6 已确认（9:16、7 种运镜、单镜头只编辑景别和运镜、未知运镜提示不落库），Q3 / Q4 不阻塞。PV-R01（运镜 + 时长，schemaVersion 3）已实现、完整档验证通过，待验收；下一步 PV-R02 / PV-R03。
+1. **镜头预演**（完整档，进行中）：需求 [docs/product/需求/镜头预演.md](docs/product/需求/镜头预演.md)，模块卡 [docs/product/任务/镜头预演.md](docs/product/任务/镜头预演.md)。顺序 PV-R01 → PV-R02 / PV-R03 → PV-R04 → PV-R05；Q1 / Q2 / Q5 / Q6 已确认（9:16、7 种运镜、单镜头只编辑景别和运镜、未知运镜提示不落库），Q3 / Q4 不阻塞。PV-R01（运镜 + 时长，schemaVersion 3）、PV-R03（预演播放）已实现、完整档验证通过，待验收；下一步 PV-R04（时长微调 + 单镜头改景别 / 运镜），PV-R02 等 Q4。
 2. 待办（不排期）：
    - iOS／iPad 原生分享在完整 Xcode 环境编译验证（Pigeon 已接入）
    - 真机性能基线 + DevTools 帧图；分镜流式性能优化候选：`items` 追加时整表复制和 Equatable 深比较、每个增量都做一次半行修复解析、新到镜头时整个列表重建、增量按帧合并

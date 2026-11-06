@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 
 import '../pages/characters/page.dart';
+import '../pages/preview/page.dart';
 import '../pages/progress/page.dart';
 import '../pages/projects/page.dart';
 import '../pages/storyboard/page.dart';
@@ -21,6 +22,13 @@ GoRouter createRouter() => GoRouter(
             GoRoute(
               path: 'characters',
               builder: (_, state) => CharactersPage(projectId: state.pathParameters['projectId']!),
+            ),
+            GoRoute(
+              path: 'preview',
+              builder: (_, state) => PreviewPage(
+                projectId: state.pathParameters['projectId']!,
+                startShot: int.tryParse(state.uri.queryParameters['shot'] ?? ''),
+              ),
             ),
             GoRoute(
               path: 'progress',
