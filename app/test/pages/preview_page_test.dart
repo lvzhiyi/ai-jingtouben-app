@@ -68,11 +68,19 @@ void main() {
     await pumpUntilFound(tester, find.text('镜头 1 / 3 · 全景 · 推'));
     expect(find.text('雨夜的老街'), findsOneWidget);
     expect(subtitle(), findsNothing);
+    // 景别小图的说明；开头的「镜头 1」小标在 0.9 秒后消失
+    expect(find.text('完整全身'), findsOneWidget);
+    // 人物下方标角色名
+    expect(find.text('林夏'), findsOneWidget);
+    expect(find.text('镜头 1'), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('镜头 1'), findsNothing);
     expect(find.byTooltip('暂停'), findsOneWidget);
 
-    await tester.pump(const Duration(milliseconds: 1600));
+    await tester.pump(const Duration(milliseconds: 1100));
     await tester.pump();
     expect(find.text('镜头 2 / 3 · 特写 · 固定'), findsOneWidget);
+    expect(find.text('面部'), findsOneWidget);
     // 还没出字时不显示字幕
     expect(subtitle(), findsNothing);
 
