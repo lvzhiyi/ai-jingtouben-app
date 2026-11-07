@@ -89,6 +89,22 @@ void main() {
       expect(shape.halfWidth, greaterThan(Skeleton.headRadius * 3));
     });
 
+    test('托着道具的手举到胸前', () {
+      final s = poseSkeleton(const FigureAction(props: FigureProps(raiseRight: true)), seconds: 0);
+      final hanging = poseSkeleton(const FigureAction(), seconds: 0);
+      expect(s.handR.dy, lessThan(hanging.handR.dy - 0.1));
+      expect(s.handL, hanging.handL);
+      final left = poseSkeleton(
+        const FigureAction(props: FigureProps(raiseLeft: true)),
+        seconds: 0,
+      );
+      expect(left.handL.dx, -s.handR.dx);
+      expect(
+        const FigureProps(phone: true).copyWith(raiseLeft: true),
+        const FigureProps(phone: true, raiseLeft: true),
+      );
+    });
+
     test('拿手机的手在胸前', () {
       final s = poseSkeleton(const FigureAction(props: FigureProps(phone: true)), seconds: 0);
       expect(s.handR.dx.abs(), lessThan(0.08));

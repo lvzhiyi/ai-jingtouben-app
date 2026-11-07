@@ -38,21 +38,41 @@ enum FigureGaze {
 
 /// 手里的道具。伞拿在画面左边那只手，手机在右边那只手，两样可以同时有。
 class FigureProps {
-  const FigureProps({this.umbrella = false, this.darkUmbrella = false, this.phone = false});
+  const FigureProps({
+    this.umbrella = false,
+    this.darkUmbrella = false,
+    this.phone = false,
+    this.raiseLeft = false,
+    this.raiseRight = false,
+  });
 
   final bool umbrella;
   final bool darkUmbrella;
   final bool phone;
+
+  /// 把手举到胸前托着生成的道具（近景以上，原本放桌上的道具改为拿在手里）。
+  final bool raiseLeft;
+  final bool raiseRight;
+
+  FigureProps copyWith({bool? raiseLeft, bool? raiseRight}) => FigureProps(
+    umbrella: umbrella,
+    darkUmbrella: darkUmbrella,
+    phone: phone,
+    raiseLeft: raiseLeft ?? this.raiseLeft,
+    raiseRight: raiseRight ?? this.raiseRight,
+  );
 
   @override
   bool operator ==(Object other) =>
       other is FigureProps &&
       other.umbrella == umbrella &&
       other.darkUmbrella == darkUmbrella &&
-      other.phone == phone;
+      other.phone == phone &&
+      other.raiseLeft == raiseLeft &&
+      other.raiseRight == raiseRight;
 
   @override
-  int get hashCode => Object.hash(umbrella, darkUmbrella, phone);
+  int get hashCode => Object.hash(umbrella, darkUmbrella, phone, raiseLeft, raiseRight);
 }
 
 /// 一个镜头里人物的动作：同一镜里出场的人共用一套。
@@ -224,6 +244,15 @@ Skeleton poseSkeleton(FigureAction action, {required double seconds}) {
     // 右手端着手机在胸前
     elbowR = up(0.14, 0.37);
     handR = up(0.05, 0.27);
+  }
+  // 托着道具：手举到胸前偏下，道具画在手上方
+  if (action.props.raiseRight) {
+    elbowR = up(0.15, 0.4);
+    handR = up(0.07, 0.33);
+  }
+  if (action.props.raiseLeft) {
+    elbowL = up(-0.15, 0.4);
+    handL = up(-0.07, 0.33);
   }
 
   return Skeleton(

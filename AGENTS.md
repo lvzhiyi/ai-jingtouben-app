@@ -40,7 +40,7 @@
 
 1. **镜头预演**（完整档，进行中）：需求 [docs/product/需求/镜头预演.md](docs/product/需求/镜头预演.md)，模块卡 [docs/product/任务/镜头预演.md](docs/product/任务/镜头预演.md)。顺序 PV-R01 → PV-R02 / PV-R03 → PV-R04 → PV-R05；Q1 / Q2 / Q5 / Q6 已确认（9:16、7 种运镜、单镜头只编辑景别和运镜、未知运镜提示不落库），Q3 / Q4 不阻塞。PV-R01（运镜 + 时长，schemaVersion 3）、PV-R03（预演播放，11/7 改为手绘分镜风格并加取景参照、景别小图、场景模板，再改为分层摄影机：视差、真推、景深；人物改为木偶人，按关键词摆姿态、拿伞或手机）已实现、完整档验证通过，待验收；下一步 PV-R04（时长微调 + 单镜头改景别 / 运镜），PV-R02 等 Q4。
 2. 待办（不排期）：
-   - 道具生成需求草稿 [docs/product/需求/道具生成.md](docs/product/需求/道具生成.md)：文本模型生成矢量道具，已纳入第一版，需求 v0.2，模块卡 [docs/product/任务/道具生成.md](docs/product/任务/道具生成.md)；PG-R01–R04 已实现（schemaVersion 4、`POST /props/draw`），完整档验证通过，待验收；未在真实模型下跑过
+   - 道具生成需求草稿 [docs/product/需求/道具生成.md](docs/product/需求/道具生成.md)：文本模型生成矢量道具，已纳入第一版，需求 v0.2，模块卡 [docs/product/任务/道具生成.md](docs/product/任务/道具生成.md)；PG-R01–R04 已实现（schemaVersion 4、`POST /props/draw`），完整档验证通过，真实模型试跑过（道具和握持点合法；近景以上桌上道具已改为举在胸前；漏列动物未改），待验收
    - iOS／iPad 原生分享在完整 Xcode 环境编译验证（Pigeon 已接入）
    - 真机性能基线 + DevTools 帧图；分镜流式性能优化候选：`items` 追加时整表复制和 Equatable 深比较、每个增量都做一次半行修复解析、新到镜头时整个列表重建、增量按帧合并
    - 用户访谈；README、演示视频、APK、Web 版

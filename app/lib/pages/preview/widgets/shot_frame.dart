@@ -243,6 +243,7 @@ class ShotFramePainter extends CustomPainter {
         figures: [for (final figure in figures) figure.name],
         drawings: propDrawings,
         rightHandBusy: base.pose == FigurePose.wave,
+        bodyCut: figures.isNotEmpty && figures.first.framing.visibleBodyRatio < 1,
       ),
       null => null,
     };
@@ -304,6 +305,21 @@ class ShotFramePainter extends CustomPainter {
             colors,
           );
         }
+        if (plan.raised[figure.name] case final name?) {
+          final props = plan.builtin[figure.name] ?? const FigureProps();
+          paintProp(
+            name,
+            raisedPropRect(
+              propDrawings[name]?.size ?? propPlaceholderSize,
+              centerX: centerX,
+              headTop: headTop,
+              figureHeight: height,
+              frameWidth: w,
+              frameHeight: h,
+              side: props.raiseRight ? 1 : -1,
+            ),
+          );
+        }
         // 脚边的道具：脚在画框外（中景以上）时不画
         if (!feetVisible) continue;
         final beside = plan.beside[figure.name] ?? const [];
@@ -315,6 +331,7 @@ class ShotFramePainter extends CustomPainter {
             feetY: headTop + height,
             figureHeight: height,
             slot: slot,
+            outward: figure.centerX < 0.45 ? -1 : 1,
           );
           paintProp(name, rect);
         }

@@ -170,6 +170,30 @@ void main() {
         expect(tester.takeException(), isNull, reason: size.label);
       }
     }
+    // 近景以上的桌上道具举在胸前
+    for (final size in [ShotSize.medium, ShotSize.closeUp]) {
+      await pumpFrame(
+        tester,
+        ShotDraft(
+          index: 6,
+          shotSize: size,
+          scene: '河边，林夏托出生日蛋糕',
+          characters: const ['林夏'],
+          shotProps: const [ShotProp(name: '生日蛋糕', owner: '林夏')],
+        ),
+        propDrawings: {
+          '生日蛋糕': const PropDrawing(
+            name: '生日蛋糕',
+            anchor: PropAnchor.table,
+            size: 0.23,
+            shapes: [
+              PropEllipse(center: Offset(0.5, 0.6), width: 0.8, height: 0.5, fill: PropFill.light),
+            ],
+          ),
+        },
+      );
+      expect(tester.takeException(), isNull, reason: size.label);
+    }
     // 没有人物、道具都没画好时只画场景里的占位
     await pumpFrame(
       tester,
