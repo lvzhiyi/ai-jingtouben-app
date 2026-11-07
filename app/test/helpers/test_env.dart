@@ -7,9 +7,12 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:jingtouben/data/db/app_database.dart';
 import 'package:jingtouben/data/prompt/template_repository.dart';
+import 'package:jingtouben/data/props/prop_draw_api.dart';
+import 'package:jingtouben/data/props/prop_generator.dart';
 import 'package:jingtouben/data/repositories/character_repository.dart';
 import 'package:jingtouben/data/repositories/progress_repository.dart';
 import 'package:jingtouben/data/repositories/project_repository.dart';
+import 'package:jingtouben/data/repositories/prop_repository.dart';
 import 'package:jingtouben/data/repositories/shot_repository.dart';
 import 'package:jingtouben/data/storyboard/storyboard_api.dart';
 
@@ -23,8 +26,9 @@ const testTemplates = '''
 
 /// 内存数据库 + 各仓库，组件测试和控制器测试共用。
 class TestEnv {
-  TestEnv._(this.db, this.api)
+  TestEnv._(this.db, this.api, http.Client propClient)
     : projects = ProjectRepository(db),
+      props = PropRepository(db),
       shots = ShotRepository(db),
       progress = ProgressRepository(db),
       characters = CharacterRepository(db),
@@ -34,11 +38,25 @@ class TestEnv {
         baseUrl: Uri.parse('http://localhost:3000/'),
         database: db,
         loadBundled: () async => testTemplates,
-      );
+      ) {
+    propGenerator = PropGenerator(
+      api: PropDrawApi(
+        client: propClient,
+        baseUrl: Uri.parse('http://localhost:3000/'),
+        deviceId: () async => 'device-test',
+      ),
+      repository: props,
+    );
+  }
 
-  factory TestEnv({required StoryboardApi api}) {
+  /// [propClient] 是道具绘图接口用的 HTTP 客户端；默认服务端不可用，道具生成全部失败、画占位。
+  factory TestEnv({required StoryboardApi api, http.Client? propClient}) {
     driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
-    return TestEnv._(AppDatabase(NativeDatabase.memory()), api);
+    return TestEnv._(
+      AppDatabase(NativeDatabase.memory()),
+      api,
+      propClient ?? MockClient((_) async => http.Response('', 503)),
+    );
   }
 
   final AppDatabase db;
@@ -48,6 +66,8 @@ class TestEnv {
   final ProgressRepository progress;
   final CharacterRepository characters;
   final TemplateRepository templates;
+  final PropRepository props;
+  late final PropGenerator propGenerator;
 
   /// 和 JingtoubenApp 注入的仓库一致。
   Widget provide(Widget child) => MultiRepositoryProvider(
@@ -58,6 +78,8 @@ class TestEnv {
       RepositoryProvider.value(value: characters),
       RepositoryProvider.value(value: api),
       RepositoryProvider.value(value: templates),
+      RepositoryProvider.value(value: props),
+      RepositoryProvider.value(value: propGenerator),
     ],
     child: child,
   );

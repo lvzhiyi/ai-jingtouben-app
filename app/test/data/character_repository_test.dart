@@ -1,9 +1,10 @@
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jingtouben/data/db/app_database.dart';
 import 'package:jingtouben/data/models/character_profile.dart';
 import 'package:jingtouben/data/models/shot_draft.dart';
+import 'package:jingtouben/data/models/shot_prop.dart';
 import 'package:jingtouben/data/models/shot_size.dart';
 import 'package:jingtouben/data/repositories/character_repository.dart';
 import 'package:jingtouben/data/repositories/project_repository.dart';
@@ -51,11 +52,27 @@ void main() {
     final shots = ShotRepository(db);
     final id = await characters.create(projectId, const CharacterProfile(name: '初恋'));
     await shots.replaceAll(projectId, const [
-      ShotDraft(index: 0, shotSize: ShotSize.medium, scene: '擦肩相撞', characters: ['我', '初恋']),
+      ShotDraft(
+        index: 0,
+        shotSize: ShotSize.medium,
+        scene: '擦肩相撞',
+        characters: ['我', '初恋'],
+        shotProps: [
+          ShotProp(name: '伞', owner: '初恋'),
+          ShotProp(name: '书', owner: '我'),
+        ],
+      ),
+      ShotDraft(index: 1, shotSize: ShotSize.full, scene: '旧镜头', characters: ['初恋']),
     ]);
 
     await characters.update(id, const CharacterProfile(name: '白月光'));
 
-    expect((await shots.loadDrafts(projectId)).single.characters, ['我', '白月光']);
+    final drafts = await shots.loadDrafts(projectId);
+    expect(drafts.first.characters, ['我', '白月光']);
+    expect(drafts.first.shotProps, const [
+      ShotProp(name: '伞', owner: '白月光'),
+      ShotProp(name: '书', owner: '我'),
+    ]);
+    expect(drafts.last.shotProps, isNull, reason: '旧镜头没有道具，改名后仍为空');
   });
 }

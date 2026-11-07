@@ -25,9 +25,10 @@ const SYSTEM_PROMPT = [
   '- characters：出场角色名数组，名称必须与角色列表一致',
   `- cameraMove：运镜，只能是 ${CAMERA_MOVES.join('、')} 之一，镜头不动时写「固定」`,
   '- durationSec：镜头时长（秒），1 到 10 之间的数字；有台词时要够把台词念完',
+  '- props：画面里需要出现的道具数组，最多 3 个，没有道具输出空数组；每项 {"name": 道具名, "owner": 拿着或在身边的角色名，放在场景里写 null}；道具名用 2 到 6 个字的常见叫法，如「伞」「行李箱」「咖啡杯」，不要形容词',
   '镜头数量 6 到 12 个，按剧情顺序输出。',
   // 示例只说明格式；场景和人名刻意与常见故事无关，避免模型把示例里的角色套进用户的故事
-  '格式示例（只示范字段写法，人物和情节必须来自用户的故事）：{"shotSize":"全景","scene":"清晨的车站站台，主角拖着行李箱走向检票口","dialogue":"","reason":"先交代时间、地点和人物处境","characters":["主角"],"cameraMove":"跟","durationSec":3}',
+  '格式示例（只示范字段写法，人物和情节必须来自用户的故事）：{"shotSize":"全景","scene":"清晨的车站站台，主角拖着行李箱走向检票口","dialogue":"","reason":"先交代时间、地点和人物处境","characters":["主角"],"cameraMove":"跟","durationSec":3,"props":[{"name":"行李箱","owner":"主角"}]}',
 ].join('\n');
 
 export function buildStoryboardMessages(input: StoryboardInput): ChatMessage[] {

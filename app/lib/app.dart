@@ -39,6 +39,8 @@ class _JingtoubenAppState extends State<JingtoubenApp> {
         RepositoryProvider.value(value: dependencies.characters),
         RepositoryProvider.value(value: dependencies.storyboard),
         RepositoryProvider.value(value: dependencies.templates),
+        RepositoryProvider.value(value: dependencies.props),
+        RepositoryProvider.value(value: dependencies.propGenerator),
       ],
       child: MaterialApp.router(
         title: '镜头本',

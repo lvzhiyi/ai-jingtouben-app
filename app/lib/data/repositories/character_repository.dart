@@ -66,6 +66,12 @@ class CharacterRepository {
           characterNames: Value([
             for (final name in shot.characterNames) name == card.name ? profile.name : name,
           ]),
+          // 道具的归属也是角色名，一起改
+          propsJson: Value(
+            shot.propsJson?.map((prop) {
+              return prop.owner == card.name ? prop.withOwner(profile.name) : prop;
+            }).toList(),
+          ),
         ),
       );
     }

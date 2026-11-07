@@ -9,6 +9,10 @@ const MOCK_SHOTS = [
     characters: ['林夏'],
     cameraMove: '拉',
     durationSec: 3,
+    props: [
+      { name: '伞', owner: '林夏' },
+      { name: '行李箱', owner: '林夏' },
+    ],
   },
   {
     shotSize: '中景',
@@ -26,6 +30,7 @@ const MOCK_SHOTS = [
     characters: [],
     cameraMove: '固定',
     durationSec: 2,
+    props: [],
   },
   {
     shotSize: '近景',
@@ -35,6 +40,7 @@ const MOCK_SHOTS = [
     characters: ['林夏'],
     cameraMove: '缓推',
     durationSec: 3.5,
+    props: [{ name: '伞', owner: '林夏' }],
   },
   {
     shotSize: '远景',
@@ -44,6 +50,7 @@ const MOCK_SHOTS = [
     characters: ['陈默'],
     cameraMove: '摇',
     durationSec: 3,
+    props: [{ name: '黑伞', owner: '陈默' }],
   },
   {
     shotSize: '中景',
@@ -53,6 +60,10 @@ const MOCK_SHOTS = [
     characters: ['林夏', '陈默'],
     cameraMove: '移',
     durationSec: 4,
+    props: [
+      { name: '伞', owner: '林夏' },
+      { name: '黑伞', owner: '陈默' },
+    ],
   },
 ];
 
@@ -63,7 +74,8 @@ const MOCK_SHOTS = [
 export async function* mockStoryboard(signal: AbortSignal): AsyncGenerator<string> {
   const lines = MOCK_SHOTS.map((shot) => JSON.stringify(shot));
   // 故意给第 3 行加一个行尾逗号，演示客户端的修复兜底；
-  // 第 2 行不给时长、第 4 行给未知运镜「缓推」，演示默认时长和运镜兜底
+  // 第 2 行不给时长和道具、第 4 行给未知运镜「缓推」，演示默认时长、关键词道具和运镜兜底；
+  // 第 1 行的「行李箱」不是内置道具，演示道具生成
   lines[2] = `${lines[2]},`;
   const text = `${lines.join('\n')}\n`;
 

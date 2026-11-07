@@ -1,7 +1,10 @@
 import 'package:equatable/equatable.dart';
 
+import '../../data/models/prop_drawing.dart';
+
 import '../../data/models/shot_draft.dart';
 import '../../data/models/shot_duration.dart';
+import '../../data/repositories/prop_repository.dart';
 
 /// 预演的离散状态：第几镜、在不在播、是否播完。
 ///
@@ -15,6 +18,7 @@ class PreviewState extends Equatable {
     this.finished = false,
     this.showScene = true,
     this.cue = 0,
+    this.propRecords = const {},
   });
 
   final bool loading;
@@ -33,7 +37,21 @@ class PreviewState extends Equatable {
   /// 每次换镜或重新开始一镜时加 1，页面据此把镜头内进度归零（同一镜重播时 [index] 不变）。
   final int cue;
 
+  /// 镜头里用到的生成道具的缓存记录；没有记录的道具还在生成（或排在后面），画占位。
+  final Map<String, PropRecord> propRecords;
+
   ShotDraft? get current => shots.isEmpty ? null : shots[index];
+
+  /// 已经画好的生成道具。
+  Map<String, PropDrawing> get propDrawings => {
+    for (final MapEntry(:key, :value) in propRecords.entries) key: ?value.drawing,
+  };
+
+  /// 当前镜头里的生成道具名（去掉内置的），重画面板用。
+  List<String> get currentGeneratedProps => <String>{
+    for (final prop in current?.shotProps ?? const [])
+      if (!isBuiltinProp(prop.name)) prop.name,
+  }.toList();
 
   bool get isLast => index == shots.length - 1;
 
@@ -50,6 +68,7 @@ class PreviewState extends Equatable {
     bool? finished,
     bool? showScene,
     int? cue,
+    Map<String, PropRecord>? propRecords,
   }) => PreviewState(
     loading: loading ?? this.loading,
     shots: shots ?? this.shots,
@@ -58,8 +77,18 @@ class PreviewState extends Equatable {
     finished: finished ?? this.finished,
     showScene: showScene ?? this.showScene,
     cue: cue ?? this.cue,
+    propRecords: propRecords ?? this.propRecords,
   );
 
   @override
-  List<Object?> get props => [loading, shots, index, playing, finished, showScene, cue];
+  List<Object?> get props => [
+    loading,
+    shots,
+    index,
+    playing,
+    finished,
+    showScene,
+    cue,
+    propRecords,
+  ];
 }

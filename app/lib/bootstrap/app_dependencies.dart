@@ -4,9 +4,12 @@ import '../config/app_config.dart';
 import '../data/db/app_database.dart';
 import '../data/device/device_id_store.dart';
 import '../data/prompt/template_repository.dart';
+import '../data/props/prop_draw_api.dart';
+import '../data/props/prop_generator.dart';
 import '../data/repositories/character_repository.dart';
 import '../data/repositories/progress_repository.dart';
 import '../data/repositories/project_repository.dart';
+import '../data/repositories/prop_repository.dart';
 import '../data/repositories/shot_repository.dart';
 import '../data/storyboard/storyboard_api.dart';
 import '../net/http_client.dart';
@@ -23,6 +26,8 @@ class AppDependencies {
     required this.characters,
     required this.storyboard,
     required this.templates,
+    required this.props,
+    required this.propGenerator,
   });
 
   final AppConfig config;
@@ -34,6 +39,8 @@ class AppDependencies {
   final CharacterRepository characters;
   final StoryboardApi storyboard;
   final TemplateRepository templates;
+  final PropRepository props;
+  final PropGenerator propGenerator;
 
   /// 读取构建配置、打开数据库并组装各仓库。[database]、[httpClient] 仅供测试注入。
   ///
@@ -49,6 +56,7 @@ class AppDependencies {
       // drift 懒打开数据库，先查一次，让打开失败暴露在启动阶段而不是第一个页面。
       await db.customSelect('SELECT 1').get();
       final deviceId = DeviceIdStore(db);
+      final props = PropRepository(db);
       return AppDependencies._(
         config: config,
         database: db,
@@ -63,6 +71,11 @@ class AppDependencies {
           deviceId: deviceId.read,
         ),
         templates: TemplateRepository(client: client, baseUrl: config.apiBaseUrl, database: db),
+        props: props,
+        propGenerator: PropGenerator(
+          api: PropDrawApi(client: client, baseUrl: config.apiBaseUrl, deviceId: deviceId.read),
+          repository: props,
+        ),
       );
     } catch (_) {
       client.close();

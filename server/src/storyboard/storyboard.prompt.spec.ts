@@ -13,6 +13,8 @@ describe('buildStoryboardMessages', () => {
     for (const move of CAMERA_MOVES) expect(system.content).toContain(move);
     expect(system.content).toContain('cameraMove');
     expect(system.content).toContain('durationSec');
+    expect(system.content).toContain('props');
+    expect(system.content).toContain('owner');
   });
 
   it('有角色卡时逐个列出外貌和服装，缺的字段不出现', () => {

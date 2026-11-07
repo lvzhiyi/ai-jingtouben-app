@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jingtouben/data/models/camera_move.dart';
 import 'package:jingtouben/data/models/shot_draft.dart';
+import 'package:jingtouben/data/models/shot_prop.dart';
 import 'package:jingtouben/data/models/shot_size.dart';
 import 'package:jingtouben/data/storyboard/storyboard_api.dart';
 import 'package:jingtouben/pages/preview/page.dart';
+import 'package:jingtouben/pages/preview/widgets/shot_frame.dart';
 import 'package:jingtouben/resources/theme.dart';
 
 import '../helpers/test_env.dart';
@@ -152,6 +154,44 @@ void main() {
   testWidgets('没有镜头时提示先去生成', (tester) async {
     await pumpPreview(tester);
     await pumpUntilFound(tester, find.text('还没有镜头，先回分镜页生成'));
+    await env.unmount(tester);
+  });
+
+  testWidgets('长按画面列出本镜道具和状态，可以重画；没有生成道具时提示', (tester) async {
+    await tester.runAsync(
+      () => env.shots.replaceAll(projectId, const [
+        ShotDraft(
+          index: 0,
+          shotSize: ShotSize.full,
+          scene: '站台',
+          characters: ['林夏'],
+          durationMs: 10000,
+          shotProps: [
+            ShotProp(name: '伞', owner: '林夏'),
+            ShotProp(name: '行李箱', owner: '林夏'),
+          ],
+        ),
+        ShotDraft(index: 1, shotSize: ShotSize.full, scene: '街口', durationMs: 2000, shotProps: []),
+      ]),
+    );
+    await pumpPreview(tester);
+    await pumpUntilFound(tester, find.text('镜头 1 / 2 · 全景 · 固定'));
+
+    // 测试环境的绘图服务不可用：生成失败后状态变成「生成失败」
+    await tester.longPress(find.byType(ShotFrame));
+    await pumpUntilFound(tester, find.text('本镜道具'));
+    expect(find.text('行李箱'), findsOneWidget);
+    expect(find.text('伞'), findsNothing, reason: '内置道具不列出');
+    await tester.tap(find.text('重画'));
+    await pumpUntilFound(tester, find.text('正在重画「行李箱」'));
+
+    // 提示条盖住了底部的播放控制，等它收起
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.byTooltip('下一镜'));
+    await pumpUntilFound(tester, find.text('镜头 2 / 2 · 全景 · 固定'));
+    await tester.longPress(find.byType(ShotFrame));
+    await pumpUntilFound(tester, find.text('这个镜头没有可重画的道具'));
     await env.unmount(tester);
   });
 }

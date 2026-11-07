@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jingtouben/data/models/camera_move.dart';
 import 'package:jingtouben/data/models/shot_draft.dart';
+import 'package:jingtouben/data/models/shot_prop.dart';
 import 'package:jingtouben/data/models/shot_size.dart';
 import 'package:jingtouben/data/storyboard/line_accumulator.dart';
 import 'package:jingtouben/data/storyboard/shot_line_parser.dart';
@@ -91,6 +92,41 @@ void main() {
         expect(shot.durationMs, isNull, reason: bad);
         expect(shot.warnings, contains('时长无效，已按默认时长'), reason: bad);
       }
+    });
+
+    test('道具：没给时为空；名字归一化、去重、最多 3 个，归属不是出场角色时置空', () {
+      ShotDraft parse(String props) => (parser.parse(
+        '{"shotSize":"中景","scene":"街口","reason":"x","cameraMove":"固定",'
+        '"characters":["林夏"]$props}',
+        index: 0,
+      ) as ParsedShot).shot;
+
+      expect(parse('').shotProps, isNull);
+      expect(parse(',"props":[]').shotProps, isEmpty);
+      final shot = parse(
+        ',"props":[{"name":" 黑 伞 ","owner":"林夏"},{"name":"猫","owner":"路人"},'
+        '{"name":"黑伞"},{"name":"吉他","owner":null},{"name":"行李箱"}]',
+      );
+      expect(shot.shotProps, const [
+        ShotProp(name: '黑伞', owner: '林夏'),
+        ShotProp(name: '猫'),
+        ShotProp(name: '吉他'),
+      ]);
+      expect(shot.warnings, isEmpty);
+    });
+
+    test('道具格式不对时忽略并提示，不算坏行', () {
+      ShotDraft parse(String props) => (parser.parse(
+        '{"shotSize":"中景","scene":"街口","reason":"x","cameraMove":"固定"$props}',
+        index: 0,
+      ) as ParsedShot).shot;
+
+      final notList = parse(',"props":"伞"');
+      expect(notList.shotProps, isNull);
+      expect(notList.warnings, ['道具格式无效，已忽略']);
+      final badItem = parse(',"props":[{"name":""},"伞",{"name":"一个名字特别特别长的道具"},{"name":"猫"}]');
+      expect(badItem.shotProps, const [ShotProp(name: '猫')]);
+      expect(badItem.warnings, ['道具格式无效，已忽略']);
     });
 
     test('缺少画面描述或无法修复时标记为需要重新生成', () {

@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { LlmService } from './llm.service';
+import { LlmModule } from '../llm/llm.module';
 import { StoryboardController } from './storyboard.controller';
 
 @Module({
+  imports: [LlmModule],
   controllers: [StoryboardController],
-  providers: [LlmService],
 })
 export class StoryboardModule {}

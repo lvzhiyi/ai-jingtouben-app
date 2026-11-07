@@ -5,6 +5,7 @@ import 'package:equatable/equatable.dart';
 import '../models/camera_move.dart';
 import '../models/shot_draft.dart';
 import '../models/shot_duration.dart';
+import '../models/shot_prop.dart';
 import '../models/shot_size.dart';
 
 /// 单行解析结果：成功的镜头、需要重新生成的坏行，或可以忽略的行。
@@ -185,6 +186,8 @@ class ShotLineParser {
       _ => const <String>[],
     };
 
+    final props = _props(json['props'], characters: characters, warnings: warnings);
+
     return ParsedShot(
       ShotDraft(
         index: index,
@@ -195,10 +198,41 @@ class ShotLineParser {
         characters: characters,
         cameraMove: cameraMove,
         durationMs: durationMs,
+        shotProps: props,
         warnings: warnings,
       ),
       repaired: repaired,
     );
+  }
+
+  /// 模型给的道具列表：名字归一化、去重，归属不是出场角色时置空，最多 [maxPropsPerShot] 个。
+  /// 没给时返回 null（预演按关键词兜底）；不是数组或有格式不对的项时忽略这些项并提示。
+  static List<ShotProp>? _props(
+    Object? value, {
+    required List<String> characters,
+    required List<String> warnings,
+  }) {
+    if (value == null) return null;
+    if (value is! List<dynamic>) {
+      warnings.add('道具格式无效，已忽略');
+      return null;
+    }
+    final props = <ShotProp>[];
+    var invalid = false;
+    for (final item in value) {
+      final name = normalizePropName(item is Map ? item['name'] : null);
+      if (name == null) {
+        invalid = true;
+        continue;
+      }
+      if (props.any((prop) => prop.name == name)) continue;
+      final owner = item is Map ? item['owner'] : null;
+      props.add(
+        ShotProp(name: name, owner: owner is String && characters.contains(owner) ? owner : null),
+      );
+    }
+    if (invalid) warnings.add('道具格式无效，已忽略');
+    return props.take(maxPropsPerShot).toList();
   }
 
   static String _text(Object? value) => value is String ? value.trim() : '';

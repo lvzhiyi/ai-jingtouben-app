@@ -73,4 +73,42 @@ void main() {
     expect(shot.cameraMove, CameraMove.fixed);
     await db.close();
   });
+
+  test('v3 → v4：表结构与 v4 快照一致，旧镜头道具为空，新建道具绘图表', () async {
+    final schema = await verifier.schemaAt(3);
+    schema.rawDatabase
+      ..execute("INSERT INTO projects (id, title, story) VALUES ('p1', '雨夜重逢', '雨夜')")
+      ..execute(
+        'INSERT INTO shots (id, project_id, sort_order, shot_size, scene, camera_move, duration_ms) '
+        "VALUES ('s1', 'p1', 0, 'full', '雨夜老街', 'pan', 3000)",
+      );
+
+    final db = AppDatabase(schema.newConnection());
+    await verifier.migrateAndValidate(db, 4);
+
+    final shot = await db.select(db.shots).getSingle();
+    expect(shot.cameraMove, CameraMove.pan);
+    expect(shot.durationMs, 3000);
+    expect(shot.propsJson, isNull);
+    expect(await db.select(db.propDrawings).get(), isEmpty);
+    await db.close();
+  });
+
+  test('v1 → v4：连续升级不丢镜头', () async {
+    final schema = await verifier.schemaAt(1);
+    schema.rawDatabase
+      ..execute("INSERT INTO projects (id, title, story) VALUES ('p1', '雨夜重逢', '雨夜')")
+      ..execute(
+        'INSERT INTO shots (id, project_id, sort_order, shot_size, scene) '
+        "VALUES ('s1', 'p1', 0, 'full', '雨夜老街')",
+      );
+
+    final db = AppDatabase(schema.newConnection());
+    await verifier.migrateAndValidate(db, 4);
+
+    final shot = await db.select(db.shots).getSingle();
+    expect(shot.scene, '雨夜老街');
+    expect(shot.propsJson, isNull);
+    await db.close();
+  });
 }

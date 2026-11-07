@@ -1,5 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../data/models/prop_drawing.dart';
+import '../../data/props/prop_generator.dart';
+import '../../data/repositories/prop_repository.dart';
 import '../../data/repositories/shot_repository.dart';
 import 'state.dart';
 
@@ -7,11 +12,19 @@ import 'state.dart';
 ///
 /// 镜头内计时由页面负责，播完一镜时调用 [next]。
 class PreviewController extends Cubit<PreviewState> {
-  PreviewController({required this.projectId, required this._shots, this.startShot})
-    : super(const PreviewState());
+  PreviewController({
+    required this.projectId,
+    required this._shots,
+    required this._props,
+    required this._generator,
+    this.startShot,
+  }) : super(const PreviewState());
 
   final String projectId;
   final ShotRepository _shots;
+  final PropRepository _props;
+  final PropGenerator _generator;
+  StreamSubscription<Map<String, PropRecord>>? _propsSubscription;
 
   /// 从哪个镜头开始，取镜头序号（`ShotDraft.index`）；为空或找不到时从第一镜开始。
   final int? startShot;
@@ -29,6 +42,32 @@ class PreviewController extends Cubit<PreviewState> {
         cue: state.cue + 1,
       ),
     );
+    _watchProps();
+  }
+
+  /// 镜头里用到的生成道具（按出现顺序，去掉内置的）：监听缓存，没画过的请求生成。
+  /// 生成在后台进行，预演不等它，画好后缓存变化、画面替换占位。
+  void _watchProps() {
+    // 集合字面量保持插入顺序，即出现顺序
+    final names = <String>{
+      for (final shot in state.shots)
+        for (final prop in shot.shotProps ?? const [])
+          if (!isBuiltinProp(prop.name)) prop.name,
+    }.toList();
+    if (names.isEmpty) return;
+    _propsSubscription = _props.watch(names).listen((records) {
+      if (!isClosed) emit(state.copyWith(propRecords: records));
+    });
+    unawaited(_generator.ensure(names));
+  }
+
+  /// 重画一个道具：删缓存、重新生成，所有剧本里的这个道具一起变。
+  Future<void> redraw(String name) => _generator.redraw(name);
+
+  @override
+  Future<void> close() async {
+    await _propsSubscription?.cancel();
+    return super.close();
   }
 
   void play() {

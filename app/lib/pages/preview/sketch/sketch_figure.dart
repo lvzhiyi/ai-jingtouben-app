@@ -148,8 +148,9 @@ void paintSketchFigure(
     final apex = at(shape.apex);
     final rimY = headTop + shape.rimY * height;
     final half = size(shape.halfWidth);
+    // 黑伞用固定的深色：夜景的墨色是浅色，按墨色调会变成浅色伞
     final canopy = action.props.darkUmbrella
-        ? Color.lerp(colors.ink, colors.fill, 0.15)!
+        ? const Color(0xFF2B2A30)
         : Color.lerp(colors.fill, tint, 0.25)!;
     // 伞面：半个椭圆，下沿是几段小弧
     final dome = SketchPen.arc(Offset(apex.dx, rimY), 1, math.pi, 2 * math.pi, points: 10)

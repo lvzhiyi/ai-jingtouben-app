@@ -83,4 +83,28 @@ describe('LlmService', () => {
     controller.abort();
     await expect(stream.next()).rejects.toThrow();
   });
+
+  it('道具绘图请求上游时带上道具名，温度更低', async () => {
+    fetchMock.mockResolvedValue(
+      new Response(sseBody(['data: {"choices":[{"delta":{"content":"{\\"items\\":[]}"}}]}\n\n', 'data: [DONE]\n\n'])),
+    );
+    const llm = service({ LLM_API_KEY: 'sk-test' });
+    expect(await collect(llm.streamPropDrawings(['猫', '吉他'], new AbortController().signal))).toEqual([
+      '{"items":[]}',
+    ]);
+
+    const body = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
+    expect(body).toMatchObject({ stream: true, temperature: 0.4 });
+    expect(body.messages[1].content).toContain('猫、吉他');
+  });
+
+  it('道具绘图没有 Key 时走模拟数据，每个道具名都有一项', async () => {
+    const text = (await collect(service({}).streamPropDrawings(['行李箱', '花束'], new AbortController().signal))).join(
+      '',
+    );
+    const items = (JSON.parse(text) as { items: Array<{ name: string; shapes: unknown[] }> }).items;
+    expect(items.map((item) => item.name)).toEqual(['行李箱', '花束']);
+    expect(items.every((item) => item.shapes.length > 0)).toBe(true);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });

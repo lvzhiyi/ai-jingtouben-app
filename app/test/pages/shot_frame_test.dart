@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jingtouben/data/models/camera_move.dart';
+import 'package:jingtouben/data/models/prop_drawing.dart';
 import 'package:jingtouben/data/models/shot_draft.dart';
+import 'package:jingtouben/data/models/shot_prop.dart';
 import 'package:jingtouben/data/models/shot_size.dart';
 import 'package:jingtouben/pages/preview/widgets/shot_frame.dart';
 import 'package:jingtouben/resources/theme.dart';
@@ -12,6 +14,7 @@ void main() {
     ShotDraft shot, {
     ThemeData? theme,
     double progress = 0.5,
+    Map<String, PropDrawing> propDrawings = const {},
   }) => tester.pumpWidget(
     MaterialApp(
       theme: theme ?? AppTheme.light(),
@@ -19,7 +22,13 @@ void main() {
         child: SizedBox(
           width: 360,
           height: 640,
-          child: ShotFrame(shot: shot, position: 1, total: 1, progress: progress),
+          child: ShotFrame(
+            shot: shot,
+            position: 1,
+            total: 1,
+            progress: progress,
+            propDrawings: propDrawings,
+          ),
         ),
       ),
     ),
@@ -103,5 +112,74 @@ void main() {
         }
       }
     }
+  });
+
+  testWidgets('生成道具：画好的按握持点和脚边摆放，没画好的画占位方块，各景别和主题都能画', (tester) async {
+    final drawings = {
+      '吉他': const PropDrawing(
+        name: '吉他',
+        anchor: PropAnchor.hand,
+        size: 0.5,
+        grip: Offset(0.5, 0.1),
+        shapes: [
+          PropEllipse(center: Offset(0.5, 0.75), width: 0.5, height: 0.4, fill: PropFill.light),
+          PropPath(points: [Offset(0.5, 0.05), Offset(0.5, 0.6)]),
+          PropPath(
+            points: [Offset(0.4, 0.8), Offset(0.6, 0.8), Offset(0.5, 0.9)],
+            closed: true,
+            fill: PropFill.dark,
+          ),
+          PropArc(center: Offset(0.5, 0.3), radius: 0.1, start: 180, end: 360),
+        ],
+      ),
+      '行李箱': const PropDrawing(
+        name: '行李箱',
+        anchor: PropAnchor.ground,
+        size: 0.45,
+        shapes: [
+          PropPath(
+            points: [Offset(0.1, 0.3), Offset(0.9, 0.3), Offset(0.9, 1), Offset(0.1, 1)],
+            closed: true,
+            fill: PropFill.accent,
+          ),
+          PropEllipse(center: Offset(0.3, 0.95), width: 0.1, height: 0.1, fill: PropFill.mid),
+        ],
+      ),
+    };
+    const props = [
+      ShotProp(name: '黑伞', owner: '陈默'),
+      ShotProp(name: '吉他', owner: '林夏'),
+      ShotProp(name: '行李箱', owner: '林夏'),
+      ShotProp(name: '猫'),
+      ShotProp(name: '花束', owner: '陈默'),
+    ];
+    for (final size in [ShotSize.long, ShotSize.full, ShotSize.medium, ShotSize.closeUp]) {
+      for (final theme in [AppTheme.light(), AppTheme.dark()]) {
+        await pumpFrame(
+          tester,
+          ShotDraft(
+            index: 4,
+            shotSize: size,
+            scene: '雨夜的站台，林夏挥手',
+            characters: const ['林夏', '陈默'],
+            shotProps: props,
+          ),
+          theme: theme,
+          propDrawings: drawings,
+        );
+        expect(tester.takeException(), isNull, reason: size.label);
+      }
+    }
+    // 没有人物、道具都没画好时只画场景里的占位
+    await pumpFrame(
+      tester,
+      const ShotDraft(
+        index: 5,
+        shotSize: ShotSize.full,
+        scene: '空荡的站台',
+        shotProps: [ShotProp(name: '猫')],
+      ),
+    );
+    expect(tester.takeException(), isNull);
   });
 }

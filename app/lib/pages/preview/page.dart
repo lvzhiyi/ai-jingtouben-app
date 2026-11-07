@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../data/props/prop_generator.dart';
+import '../../data/repositories/prop_repository.dart';
 import '../../data/repositories/shot_repository.dart';
 import 'controller.dart';
 import 'view.dart';
@@ -19,6 +21,8 @@ class PreviewPage extends StatelessWidget {
     create: (context) => PreviewController(
       projectId: projectId,
       shots: context.read<ShotRepository>(),
+      props: context.read<PropRepository>(),
+      generator: context.read<PropGenerator>(),
       startShot: startShot,
     )..load(),
     child: const PreviewView(),

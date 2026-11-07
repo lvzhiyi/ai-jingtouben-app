@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import '../models/camera_move.dart';
+import '../models/prop_drawing_status.dart';
 import '../models/shot_size.dart';
 import '../models/shot_status.dart';
 import '../models/video_platform.dart';
@@ -64,6 +65,10 @@ class Shots extends Table with SyncColumns {
   /// v3 新增，毫秒。为空时按默认规则推导，不回写。
   IntColumn get durationMs => integer().nullable()();
 
+  /// v4 新增，镜头里的道具（名字和归属）。为空表示旧数据或模型没给，预演按画面描述的关键词兜底；
+  /// 空数组表示模型明确说没有道具。
+  TextColumn get propsJson => text().map(const ShotPropListConverter()).nullable()();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
@@ -82,6 +87,21 @@ class Generations extends Table with SyncColumns {
 
   @override
   Set<Column<Object>> get primaryKey => {id};
+}
+
+/// v4 新增。模型生成的道具绘图缓存，按道具名共用：任何剧本再用到同名道具都不重复生成。
+/// 不挂在项目下，删除项目不删缓存。
+@DataClassName('PropDrawingRow')
+class PropDrawings extends Table {
+  TextColumn get name => text()();
+
+  /// 校验通过的绘图 JSON；失败时为空。
+  TextColumn get drawingJson => text().nullable()();
+  TextColumn get status => textEnum<PropDrawingStatus>()();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column<Object>> get primaryKey => {name};
 }
 
 /// 应用级键值：安装 ID、提示词模板缓存等。代替 SharedPreferences，存储只有 drift 一处。

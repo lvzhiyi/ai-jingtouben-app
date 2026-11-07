@@ -34,6 +34,7 @@ class ShotRepository {
             characterNames: Value(draft.characters),
             cameraMove: Value(draft.cameraMove),
             durationMs: Value(draft.durationMs),
+            propsJson: Value(draft.shotProps),
           ),
       ]);
     });
@@ -67,5 +68,6 @@ extension ShotToDraft on Shot {
     characters: characterNames,
     cameraMove: cameraMove,
     durationMs: durationMs,
+    shotProps: propsJson,
   );
 }

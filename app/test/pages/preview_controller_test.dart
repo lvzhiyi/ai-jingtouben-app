@@ -1,8 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jingtouben/data/models/prop_drawing_status.dart';
 import 'package:jingtouben/data/models/shot_draft.dart';
+import 'package:jingtouben/data/models/shot_prop.dart';
 import 'package:jingtouben/data/models/shot_size.dart';
 import 'package:jingtouben/data/storyboard/storyboard_api.dart';
 import 'package:jingtouben/pages/preview/controller.dart';
+import 'package:jingtouben/pages/preview/state.dart';
 
 import '../helpers/test_env.dart';
 
@@ -32,6 +35,8 @@ void main() {
     final controller = PreviewController(
       projectId: project ?? projectId,
       shots: env.shots,
+      props: env.props,
+      generator: env.propGenerator,
       startShot: startShot,
     );
     await controller.load();
@@ -120,6 +125,39 @@ void main() {
       ..replay();
     expect(controller.state.playing, isFalse);
     expect(controller.state.finished, isFalse);
+    await controller.close();
+  });
+
+  test('镜头里的生成道具在后台生成，缓存变化时更新状态；内置道具不生成', () async {
+    final pid = await env.projects.create('带道具');
+    await env.shots.replaceAll(pid, const [
+      ShotDraft(
+        index: 0,
+        shotSize: ShotSize.full,
+        scene: '站台',
+        characters: ['林夏'],
+        shotProps: [
+          ShotProp(name: '伞', owner: '林夏'),
+          ShotProp(name: '行李箱', owner: '林夏'),
+        ],
+      ),
+      ShotDraft(
+        index: 1,
+        shotSize: ShotSize.full,
+        scene: '街口',
+        shotProps: [ShotProp(name: '行李箱')],
+      ),
+    ]);
+    final controller = await open(project: pid);
+    // 测试环境的绘图服务不可用：生成失败，记为失败
+    await expectLater(
+      controller.stream,
+      emitsThrough(
+        predicate<PreviewState>((s) => s.propRecords['行李箱']?.status == PropDrawingStatus.failed),
+      ),
+    );
+    expect(controller.state.propRecords.keys, ['行李箱']);
+    await controller.redraw('行李箱');
     await controller.close();
   });
 }

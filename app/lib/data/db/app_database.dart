@@ -2,6 +2,8 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 
 import '../models/camera_move.dart';
+import '../models/prop_drawing_status.dart';
+import '../models/shot_prop.dart';
 import '../models/shot_size.dart';
 import '../models/shot_status.dart';
 import '../models/video_platform.dart';
@@ -11,7 +13,7 @@ import 'tables.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [Projects, CharacterCards, Shots, Generations, KeyValues])
+@DriftDatabase(tables: [Projects, CharacterCards, Shots, Generations, KeyValues, PropDrawings])
 class AppDatabase extends _$AppDatabase {
   /// 测试里传入 `NativeDatabase.memory()`。
   AppDatabase(super.executor);
@@ -29,7 +31,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// 改表时加 1，导出 `drift_schemas/` 快照、重新生成 `schema_versions.dart`，并在 [migration] 里补一步。
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -44,6 +46,11 @@ class AppDatabase extends _$AppDatabase {
         // v3：镜头加运镜和时长。只加列：运镜有默认值，时长可空，旧数据不用回填。
         await m.addColumn(schema.shots, schema.shots.cameraMove);
         await m.addColumn(schema.shots, schema.shots.durationMs);
+      },
+      from3To4: (m, schema) async {
+        // v4：镜头加道具列表（可空，旧镜头按关键词兜底），新增道具绘图缓存表。
+        await m.addColumn(schema.shots, schema.shots.propsJson);
+        await m.createTable(schema.propDrawings);
       },
     ),
     beforeOpen: (details) async {

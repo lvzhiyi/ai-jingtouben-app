@@ -2,12 +2,15 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../data/models/prop_drawing.dart';
 import '../../../data/models/shot_draft.dart';
 import '../../../data/models/shot_duration.dart';
 import '../figure_pose.dart';
 import '../preview_motion.dart';
+import '../prop_layout.dart';
 import '../sketch/sketch_figure.dart';
 import '../sketch/sketch_pen.dart';
+import '../sketch/sketch_prop.dart';
 import '../sketch/sketch_scene.dart';
 import 'framing_minimap.dart';
 
@@ -23,9 +26,13 @@ class ShotFrame extends StatelessWidget {
     required this.total,
     required this.progress,
     this.showScene = true,
+    this.propDrawings = const {},
   });
 
   final ShotDraft shot;
+
+  /// 已经画好的生成道具；镜头里用到但不在这里的道具画占位方块。
+  final Map<String, PropDrawing> propDrawings;
 
   /// 当前是第几个镜头（从 1 开始）和总数，用于角标。
   final int position;
@@ -63,6 +70,7 @@ class ShotFrame extends StatelessWidget {
               elapsedMs: elapsedMs,
               look: look,
               colors: colors,
+              propDrawings: propDrawings,
             ),
           ),
           CustomPaint(
@@ -194,6 +202,7 @@ class ShotFramePainter extends CustomPainter {
     required this.elapsedMs,
     required this.look,
     required this.colors,
+    this.propDrawings = const {},
   });
 
   final ShotDraft shot;
@@ -201,6 +210,7 @@ class ShotFramePainter extends CustomPainter {
   final int elapsedMs;
   final SceneLook look;
   final SketchColors colors;
+  final Map<String, PropDrawing> propDrawings;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -225,10 +235,38 @@ class ShotFramePainter extends CustomPainter {
     );
     paintSketchScene(pen, args);
     final figures = placeFigures(shot.shotSize, shot.characters);
-    final action = figureAction(shot.scene, ignore: shot.characters, count: figures.length);
-    final skeleton = poseSkeleton(action, seconds: elapsedMs / 1000);
+    final base = figureAction(shot.scene, ignore: shot.characters, count: figures.length);
+    // 有道具列表时按人分配道具（只有归属的人拿伞）；旧数据按画面描述的关键词，所有人共用
+    final plan = switch (shot.shotProps) {
+      final props? => planProps(
+        props,
+        figures: [for (final figure in figures) figure.name],
+        drawings: propDrawings,
+        rightHandBusy: base.pose == FigurePose.wave,
+      ),
+      null => null,
+    };
+    FigureAction actionFor(String name) {
+      if (plan == null) return base;
+      final props = plan.builtin[name] ?? const FigureProps();
+      // 挥手和拿手机用同一只手，拿手机优先
+      final pose = base.pose == FigurePose.wave && props.phone ? FigurePose.stand : base.pose;
+      return FigureAction(pose: pose, gaze: base.gaze, props: props);
+    }
+
+    void paintProp(String name, Rect rect) {
+      final drawing = propDrawings[name];
+      if (drawing != null) {
+        paintPropDrawing(canvas, drawing, rect, colors);
+      } else {
+        paintPropPlaceholder(canvas, name, rect, colors);
+      }
+    }
+
     args.camera.layer(SceneDepth.subject, subject: true, (shift) {
       for (final figure in figures) {
+        final action = actionFor(figure.name);
+        final skeleton = poseSkeleton(action, seconds: elapsedMs / 1000);
         final framing = figure.framing;
         final centerX = figure.centerX * w + shift;
         final height = framing.figureHeight * h;
@@ -237,7 +275,8 @@ class ShotFramePainter extends CustomPainter {
             ? sitDrop * height
             : 0.0;
         final headTop = (framing.headTop + camera.figureBob) * h - lift;
-        if (framing.visibleBodyRatio >= 1) {
+        final feetVisible = framing.visibleBodyRatio >= 1;
+        if (feetVisible) {
           paintSketchShadow(pen, centerX: centerX, feet: headTop + height, height: height);
         }
         paintSketchFigure(
@@ -252,6 +291,50 @@ class ShotFramePainter extends CustomPainter {
           skeleton: skeleton,
           turn: headTurn(action, centerX: figure.centerX),
         );
+        if (plan == null) continue;
+        Offset at(Offset body) => Offset(centerX + body.dx * height, headTop + body.dy * height);
+        final held = plan.held[figure.name];
+        for (final (hand, name) in [(skeleton.handL, held?.left), (skeleton.handR, held?.right)]) {
+          final drawing = name == null ? null : propDrawings[name];
+          if (drawing == null) continue;
+          paintPropDrawing(
+            canvas,
+            drawing,
+            heldPropRect(drawing, hand: at(hand), figureHeight: height),
+            colors,
+          );
+        }
+        // 脚边的道具：脚在画框外（中景以上）时不画
+        if (!feetVisible) continue;
+        final beside = plan.beside[figure.name] ?? const [];
+        for (var slot = 0; slot < beside.length; slot++) {
+          final name = beside[slot];
+          final rect = besidePropRect(
+            propDrawings[name]?.size ?? propPlaceholderSize,
+            centerX: centerX,
+            feetY: headTop + height,
+            figureHeight: height,
+            slot: slot,
+          );
+          paintProp(name, rect);
+        }
+      }
+      // 没有归属的道具放在场景里，按这个景别的人物大小摆
+      if (plan == null || plan.scene.isEmpty) return;
+      final reference = figures.isEmpty ? framingFor(shot.shotSize) : figures.first.framing;
+      if (reference.visibleBodyRatio < 1) return;
+      final height = reference.figureHeight * h;
+      final feetY = (reference.headTop + reference.figureHeight) * h;
+      for (var slot = 0; slot < plan.scene.length; slot++) {
+        final name = plan.scene[slot];
+        final rect = scenePropRect(
+          propDrawings[name]?.size ?? propPlaceholderSize,
+          frameWidth: w,
+          feetY: feetY,
+          figureHeight: height,
+          slot: slot,
+        );
+        paintProp(name, rect.shift(Offset(shift, 0)));
       }
     });
     paintSketchForeground(pen, args);
@@ -265,7 +348,8 @@ class ShotFramePainter extends CustomPainter {
       oldDelegate.progress != progress ||
       oldDelegate.elapsedMs != elapsedMs ||
       oldDelegate.look != look ||
-      oldDelegate.colors != colors;
+      oldDelegate.colors != colors ||
+      oldDelegate.propDrawings != propDrawings;
 }
 
 /// 取景参照：三分线、四角取景标记，推拉时标记往里收 / 往外放，摇移跟升降时有箭头划过。

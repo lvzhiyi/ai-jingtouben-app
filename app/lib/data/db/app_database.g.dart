@@ -929,6 +929,15 @@ class $ShotsTable extends Shots with TableInfo<$ShotsTable, Shot> {
     requiredDuringInsert: false,
   );
   @override
+  late final GeneratedColumnWithTypeConverter<List<ShotProp>?, String> propsJson =
+      GeneratedColumn<String>(
+        'props_json',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<List<ShotProp>?>($ShotsTable.$converterpropsJsonn);
+  @override
   List<GeneratedColumn> get $columns => [
     updatedAt,
     remoteId,
@@ -943,6 +952,7 @@ class $ShotsTable extends Shots with TableInfo<$ShotsTable, Shot> {
     status,
     cameraMove,
     durationMs,
+    propsJson,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1069,6 +1079,12 @@ class $ShotsTable extends Shots with TableInfo<$ShotsTable, Shot> {
         DriftSqlType.int,
         data['${effectivePrefix}duration_ms'],
       ),
+      propsJson: $ShotsTable.$converterpropsJsonn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}props_json'],
+        ),
+      ),
     );
   }
 
@@ -1084,6 +1100,10 @@ class $ShotsTable extends Shots with TableInfo<$ShotsTable, Shot> {
       const EnumNameConverter<ShotStatus>(ShotStatus.values);
   static JsonTypeConverter2<CameraMove, String, String> $convertercameraMove =
       const EnumNameConverter<CameraMove>(CameraMove.values);
+  static TypeConverter<List<ShotProp>, String> $converterpropsJson = const ShotPropListConverter();
+  static TypeConverter<List<ShotProp>?, String?> $converterpropsJsonn = NullAwareTypeConverter.wrap(
+    $converterpropsJson,
+  );
 }
 
 class Shot extends DataClass implements Insertable<Shot> {
@@ -1109,6 +1129,10 @@ class Shot extends DataClass implements Insertable<Shot> {
 
   /// v3 新增，毫秒。为空时按默认规则推导，不回写。
   final int? durationMs;
+
+  /// v4 新增，镜头里的道具（名字和归属）。为空表示旧数据或模型没给，预演按画面描述的关键词兜底；
+  /// 空数组表示模型明确说没有道具。
+  final List<ShotProp>? propsJson;
   const Shot({
     required this.updatedAt,
     this.remoteId,
@@ -1123,6 +1147,7 @@ class Shot extends DataClass implements Insertable<Shot> {
     required this.status,
     required this.cameraMove,
     this.durationMs,
+    this.propsJson,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1154,6 +1179,9 @@ class Shot extends DataClass implements Insertable<Shot> {
     if (!nullToAbsent || durationMs != null) {
       map['duration_ms'] = Variable<int>(durationMs);
     }
+    if (!nullToAbsent || propsJson != null) {
+      map['props_json'] = Variable<String>($ShotsTable.$converterpropsJsonn.toSql(propsJson));
+    }
     return map;
   }
 
@@ -1172,6 +1200,7 @@ class Shot extends DataClass implements Insertable<Shot> {
       status: Value(status),
       cameraMove: Value(cameraMove),
       durationMs: durationMs == null && nullToAbsent ? const Value.absent() : Value(durationMs),
+      propsJson: propsJson == null && nullToAbsent ? const Value.absent() : Value(propsJson),
     );
   }
 
@@ -1195,6 +1224,7 @@ class Shot extends DataClass implements Insertable<Shot> {
         serializer.fromJson<String>(json['cameraMove']),
       ),
       durationMs: serializer.fromJson<int?>(json['durationMs']),
+      propsJson: serializer.fromJson<List<ShotProp>?>(json['propsJson']),
     );
   }
   @override
@@ -1214,6 +1244,7 @@ class Shot extends DataClass implements Insertable<Shot> {
       'status': serializer.toJson<String>($ShotsTable.$converterstatus.toJson(status)),
       'cameraMove': serializer.toJson<String>($ShotsTable.$convertercameraMove.toJson(cameraMove)),
       'durationMs': serializer.toJson<int?>(durationMs),
+      'propsJson': serializer.toJson<List<ShotProp>?>(propsJson),
     };
   }
 
@@ -1231,6 +1262,7 @@ class Shot extends DataClass implements Insertable<Shot> {
     ShotStatus? status,
     CameraMove? cameraMove,
     Value<int?> durationMs = const Value.absent(),
+    Value<List<ShotProp>?> propsJson = const Value.absent(),
   }) => Shot(
     updatedAt: updatedAt ?? this.updatedAt,
     remoteId: remoteId.present ? remoteId.value : this.remoteId,
@@ -1245,6 +1277,7 @@ class Shot extends DataClass implements Insertable<Shot> {
     status: status ?? this.status,
     cameraMove: cameraMove ?? this.cameraMove,
     durationMs: durationMs.present ? durationMs.value : this.durationMs,
+    propsJson: propsJson.present ? propsJson.value : this.propsJson,
   );
   Shot copyWithCompanion(ShotsCompanion data) {
     return Shot(
@@ -1261,6 +1294,7 @@ class Shot extends DataClass implements Insertable<Shot> {
       status: data.status.present ? data.status.value : this.status,
       cameraMove: data.cameraMove.present ? data.cameraMove.value : this.cameraMove,
       durationMs: data.durationMs.present ? data.durationMs.value : this.durationMs,
+      propsJson: data.propsJson.present ? data.propsJson.value : this.propsJson,
     );
   }
 
@@ -1279,7 +1313,8 @@ class Shot extends DataClass implements Insertable<Shot> {
           ..write('characterNames: $characterNames, ')
           ..write('status: $status, ')
           ..write('cameraMove: $cameraMove, ')
-          ..write('durationMs: $durationMs')
+          ..write('durationMs: $durationMs, ')
+          ..write('propsJson: $propsJson')
           ..write(')'))
         .toString();
   }
@@ -1299,6 +1334,7 @@ class Shot extends DataClass implements Insertable<Shot> {
     status,
     cameraMove,
     durationMs,
+    propsJson,
   );
   @override
   bool operator ==(Object other) =>
@@ -1316,7 +1352,8 @@ class Shot extends DataClass implements Insertable<Shot> {
           other.characterNames == this.characterNames &&
           other.status == this.status &&
           other.cameraMove == this.cameraMove &&
-          other.durationMs == this.durationMs);
+          other.durationMs == this.durationMs &&
+          other.propsJson == this.propsJson);
 }
 
 class ShotsCompanion extends UpdateCompanion<Shot> {
@@ -1333,6 +1370,7 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
   final Value<ShotStatus> status;
   final Value<CameraMove> cameraMove;
   final Value<int?> durationMs;
+  final Value<List<ShotProp>?> propsJson;
   final Value<int> rowid;
   const ShotsCompanion({
     this.updatedAt = const Value.absent(),
@@ -1348,6 +1386,7 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
     this.status = const Value.absent(),
     this.cameraMove = const Value.absent(),
     this.durationMs = const Value.absent(),
+    this.propsJson = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ShotsCompanion.insert({
@@ -1364,6 +1403,7 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
     this.status = const Value.absent(),
     this.cameraMove = const Value.absent(),
     this.durationMs = const Value.absent(),
+    this.propsJson = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        projectId = Value(projectId),
@@ -1384,6 +1424,7 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
     Expression<String>? status,
     Expression<String>? cameraMove,
     Expression<int>? durationMs,
+    Expression<String>? propsJson,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1400,6 +1441,7 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
       if (status != null) 'status': status,
       if (cameraMove != null) 'camera_move': cameraMove,
       if (durationMs != null) 'duration_ms': durationMs,
+      if (propsJson != null) 'props_json': propsJson,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1418,6 +1460,7 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
     Value<ShotStatus>? status,
     Value<CameraMove>? cameraMove,
     Value<int?>? durationMs,
+    Value<List<ShotProp>?>? propsJson,
     Value<int>? rowid,
   }) {
     return ShotsCompanion(
@@ -1434,6 +1477,7 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
       status: status ?? this.status,
       cameraMove: cameraMove ?? this.cameraMove,
       durationMs: durationMs ?? this.durationMs,
+      propsJson: propsJson ?? this.propsJson,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1484,6 +1528,9 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
     if (durationMs.present) {
       map['duration_ms'] = Variable<int>(durationMs.value);
     }
+    if (propsJson.present) {
+      map['props_json'] = Variable<String>($ShotsTable.$converterpropsJsonn.toSql(propsJson.value));
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1506,6 +1553,7 @@ class ShotsCompanion extends UpdateCompanion<Shot> {
           ..write('status: $status, ')
           ..write('cameraMove: $cameraMove, ')
           ..write('durationMs: $durationMs, ')
+          ..write('propsJson: $propsJson, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2232,6 +2280,300 @@ class KeyValuesCompanion extends UpdateCompanion<KeyValueEntry> {
   }
 }
 
+class $PropDrawingsTable extends PropDrawings with TableInfo<$PropDrawingsTable, PropDrawingRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PropDrawingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _drawingJsonMeta = const VerificationMeta('drawingJson');
+  @override
+  late final GeneratedColumn<String> drawingJson = GeneratedColumn<String>(
+    'drawing_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<PropDrawingStatus, String> status =
+      GeneratedColumn<String>(
+        'status',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<PropDrawingStatus>($PropDrawingsTable.$converterstatus);
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [name, drawingJson, status, updatedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'prop_drawings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PropDrawingRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('name')) {
+      context.handle(_nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('drawing_json')) {
+      context.handle(
+        _drawingJsonMeta,
+        drawingJson.isAcceptableOrUnknown(data['drawing_json']!, _drawingJsonMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {name};
+  @override
+  PropDrawingRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PropDrawingRow(
+      name: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      drawingJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}drawing_json'],
+      ),
+      status: $PropDrawingsTable.$converterstatus.fromSql(
+        attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PropDrawingsTable createAlias(String alias) {
+    return $PropDrawingsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<PropDrawingStatus, String, String> $converterstatus =
+      const EnumNameConverter<PropDrawingStatus>(PropDrawingStatus.values);
+}
+
+class PropDrawingRow extends DataClass implements Insertable<PropDrawingRow> {
+  final String name;
+
+  /// 校验通过的绘图 JSON；失败时为空。
+  final String? drawingJson;
+  final PropDrawingStatus status;
+  final DateTime updatedAt;
+  const PropDrawingRow({
+    required this.name,
+    this.drawingJson,
+    required this.status,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || drawingJson != null) {
+      map['drawing_json'] = Variable<String>(drawingJson);
+    }
+    {
+      map['status'] = Variable<String>($PropDrawingsTable.$converterstatus.toSql(status));
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  PropDrawingsCompanion toCompanion(bool nullToAbsent) {
+    return PropDrawingsCompanion(
+      name: Value(name),
+      drawingJson: drawingJson == null && nullToAbsent ? const Value.absent() : Value(drawingJson),
+      status: Value(status),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory PropDrawingRow.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PropDrawingRow(
+      name: serializer.fromJson<String>(json['name']),
+      drawingJson: serializer.fromJson<String?>(json['drawingJson']),
+      status: $PropDrawingsTable.$converterstatus.fromJson(
+        serializer.fromJson<String>(json['status']),
+      ),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'name': serializer.toJson<String>(name),
+      'drawingJson': serializer.toJson<String?>(drawingJson),
+      'status': serializer.toJson<String>($PropDrawingsTable.$converterstatus.toJson(status)),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  PropDrawingRow copyWith({
+    String? name,
+    Value<String?> drawingJson = const Value.absent(),
+    PropDrawingStatus? status,
+    DateTime? updatedAt,
+  }) => PropDrawingRow(
+    name: name ?? this.name,
+    drawingJson: drawingJson.present ? drawingJson.value : this.drawingJson,
+    status: status ?? this.status,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  PropDrawingRow copyWithCompanion(PropDrawingsCompanion data) {
+    return PropDrawingRow(
+      name: data.name.present ? data.name.value : this.name,
+      drawingJson: data.drawingJson.present ? data.drawingJson.value : this.drawingJson,
+      status: data.status.present ? data.status.value : this.status,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PropDrawingRow(')
+          ..write('name: $name, ')
+          ..write('drawingJson: $drawingJson, ')
+          ..write('status: $status, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(name, drawingJson, status, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PropDrawingRow &&
+          other.name == this.name &&
+          other.drawingJson == this.drawingJson &&
+          other.status == this.status &&
+          other.updatedAt == this.updatedAt);
+}
+
+class PropDrawingsCompanion extends UpdateCompanion<PropDrawingRow> {
+  final Value<String> name;
+  final Value<String?> drawingJson;
+  final Value<PropDrawingStatus> status;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const PropDrawingsCompanion({
+    this.name = const Value.absent(),
+    this.drawingJson = const Value.absent(),
+    this.status = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PropDrawingsCompanion.insert({
+    required String name,
+    this.drawingJson = const Value.absent(),
+    required PropDrawingStatus status,
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : name = Value(name),
+       status = Value(status);
+  static Insertable<PropDrawingRow> custom({
+    Expression<String>? name,
+    Expression<String>? drawingJson,
+    Expression<String>? status,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (name != null) 'name': name,
+      if (drawingJson != null) 'drawing_json': drawingJson,
+      if (status != null) 'status': status,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PropDrawingsCompanion copyWith({
+    Value<String>? name,
+    Value<String?>? drawingJson,
+    Value<PropDrawingStatus>? status,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return PropDrawingsCompanion(
+      name: name ?? this.name,
+      drawingJson: drawingJson ?? this.drawingJson,
+      status: status ?? this.status,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (drawingJson.present) {
+      map['drawing_json'] = Variable<String>(drawingJson.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>($PropDrawingsTable.$converterstatus.toSql(status.value));
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PropDrawingsCompanion(')
+          ..write('name: $name, ')
+          ..write('drawingJson: $drawingJson, ')
+          ..write('status: $status, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2240,6 +2582,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ShotsTable shots = $ShotsTable(this);
   late final $GenerationsTable generations = $GenerationsTable(this);
   late final $KeyValuesTable keyValues = $KeyValuesTable(this);
+  late final $PropDrawingsTable propDrawings = $PropDrawingsTable(this);
   late final Index shotsProjectOrder = Index(
     'shots_project_order',
     'CREATE INDEX shots_project_order ON shots (project_id, sort_order)',
@@ -2254,6 +2597,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     shots,
     generations,
     keyValues,
+    propDrawings,
     shotsProjectOrder,
   ];
   @override
@@ -2932,6 +3276,7 @@ typedef $$ShotsTableCreateCompanionBuilder = ShotsCompanion Function({
   Value<ShotStatus> status,
   Value<CameraMove> cameraMove,
   Value<int?> durationMs,
+  Value<List<ShotProp>?> propsJson,
   Value<int> rowid,
 });
 typedef $$ShotsTableUpdateCompanionBuilder = ShotsCompanion Function({
@@ -2948,6 +3293,7 @@ typedef $$ShotsTableUpdateCompanionBuilder = ShotsCompanion Function({
   Value<ShotStatus> status,
   Value<CameraMove> cameraMove,
   Value<int?> durationMs,
+  Value<List<ShotProp>?> propsJson,
   Value<int> rowid,
 });
 
@@ -3038,6 +3384,12 @@ class $$ShotsTableFilterComposer extends Composer<_$AppDatabase, $ShotsTable> {
   ColumnFilters<int> get durationMs =>
       $composableBuilder(column: $table.durationMs, builder: (column) => ColumnFilters(column));
 
+  ColumnWithTypeConverterFilters<List<ShotProp>?, List<ShotProp>, String> get propsJson =>
+      $composableBuilder(
+        column: $table.propsJson,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
   $$ProjectsTableFilterComposer get projectId {
     final $$ProjectsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -3123,6 +3475,9 @@ class $$ShotsTableOrderingComposer extends Composer<_$AppDatabase, $ShotsTable> 
   ColumnOrderings<int> get durationMs =>
       $composableBuilder(column: $table.durationMs, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get propsJson =>
+      $composableBuilder(column: $table.propsJson, builder: (column) => ColumnOrderings(column));
+
   $$ProjectsTableOrderingComposer get projectId {
     final $$ProjectsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -3185,6 +3540,9 @@ class $$ShotsTableAnnotationComposer extends Composer<_$AppDatabase, $ShotsTable
 
   GeneratedColumn<int> get durationMs =>
       $composableBuilder(column: $table.durationMs, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<List<ShotProp>?, String> get propsJson =>
+      $composableBuilder(column: $table.propsJson, builder: (column) => column);
 
   $$ProjectsTableAnnotationComposer get projectId {
     final $$ProjectsTableAnnotationComposer composer = $composerBuilder(
@@ -3263,6 +3621,7 @@ class $$ShotsTableTableManager
                 Value<ShotStatus> status = const Value.absent(),
                 Value<CameraMove> cameraMove = const Value.absent(),
                 Value<int?> durationMs = const Value.absent(),
+                Value<List<ShotProp>?> propsJson = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ShotsCompanion(
                 updatedAt: updatedAt,
@@ -3278,6 +3637,7 @@ class $$ShotsTableTableManager
                 status: status,
                 cameraMove: cameraMove,
                 durationMs: durationMs,
+                propsJson: propsJson,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -3295,6 +3655,7 @@ class $$ShotsTableTableManager
                 Value<ShotStatus> status = const Value.absent(),
                 Value<CameraMove> cameraMove = const Value.absent(),
                 Value<int?> durationMs = const Value.absent(),
+                Value<List<ShotProp>?> propsJson = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ShotsCompanion.insert(
                 updatedAt: updatedAt,
@@ -3310,6 +3671,7 @@ class $$ShotsTableTableManager
                 status: status,
                 cameraMove: cameraMove,
                 durationMs: durationMs,
+                propsJson: propsJson,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -3840,6 +4202,166 @@ typedef $$KeyValuesTableProcessedTableManager =
       KeyValueEntry,
       PrefetchHooks Function()
     >;
+typedef $$PropDrawingsTableCreateCompanionBuilder = PropDrawingsCompanion Function({
+  required String name,
+  Value<String?> drawingJson,
+  required PropDrawingStatus status,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+typedef $$PropDrawingsTableUpdateCompanionBuilder = PropDrawingsCompanion Function({
+  Value<String> name,
+  Value<String?> drawingJson,
+  Value<PropDrawingStatus> status,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+
+class $$PropDrawingsTableFilterComposer extends Composer<_$AppDatabase, $PropDrawingsTable> {
+  $$PropDrawingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get drawingJson =>
+      $composableBuilder(column: $table.drawingJson, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<PropDrawingStatus, PropDrawingStatus, String> get status =>
+      $composableBuilder(
+        column: $table.status,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$PropDrawingsTableOrderingComposer extends Composer<_$AppDatabase, $PropDrawingsTable> {
+  $$PropDrawingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get drawingJson =>
+      $composableBuilder(column: $table.drawingJson, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$PropDrawingsTableAnnotationComposer extends Composer<_$AppDatabase, $PropDrawingsTable> {
+  $$PropDrawingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get drawingJson =>
+      $composableBuilder(column: $table.drawingJson, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<PropDrawingStatus, String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$PropDrawingsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PropDrawingsTable,
+          PropDrawingRow,
+          $$PropDrawingsTableFilterComposer,
+          $$PropDrawingsTableOrderingComposer,
+          $$PropDrawingsTableAnnotationComposer,
+          $$PropDrawingsTableCreateCompanionBuilder,
+          $$PropDrawingsTableUpdateCompanionBuilder,
+          (PropDrawingRow, BaseReferences<_$AppDatabase, $PropDrawingsTable, PropDrawingRow>),
+          PropDrawingRow,
+          PrefetchHooks Function()
+        > {
+  $$PropDrawingsTableTableManager(_$AppDatabase db, $PropDrawingsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () => $$PropDrawingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () => $$PropDrawingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PropDrawingsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> name = const Value.absent(),
+                Value<String?> drawingJson = const Value.absent(),
+                Value<PropDrawingStatus> status = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PropDrawingsCompanion(
+                name: name,
+                drawingJson: drawingJson,
+                status: status,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String name,
+                Value<String?> drawingJson = const Value.absent(),
+                required PropDrawingStatus status,
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PropDrawingsCompanion.insert(
+                name: name,
+                drawingJson: drawingJson,
+                status: status,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$PropDrawingsTable, PropDrawingRow>(table),
+                  BaseReferences<_$AppDatabase, $PropDrawingsTable, PropDrawingRow>(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PropDrawingsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PropDrawingsTable,
+      PropDrawingRow,
+      $$PropDrawingsTableFilterComposer,
+      $$PropDrawingsTableOrderingComposer,
+      $$PropDrawingsTableAnnotationComposer,
+      $$PropDrawingsTableCreateCompanionBuilder,
+      $$PropDrawingsTableUpdateCompanionBuilder,
+      (PropDrawingRow, BaseReferences<_$AppDatabase, $PropDrawingsTable, PropDrawingRow>),
+      PropDrawingRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3851,4 +4373,6 @@ class $AppDatabaseManager {
   $$GenerationsTableTableManager get generations =>
       $$GenerationsTableTableManager(_db, _db.generations);
   $$KeyValuesTableTableManager get keyValues => $$KeyValuesTableTableManager(_db, _db.keyValues);
+  $$PropDrawingsTableTableManager get propDrawings =>
+      $$PropDrawingsTableTableManager(_db, _db.propDrawings);
 }

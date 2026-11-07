@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../data/models/prop_drawing_status.dart';
 import '../../data/models/shot_duration.dart';
 import '../../resources/theme.dart';
 import 'controller.dart';
@@ -90,11 +91,60 @@ class _PreviewBody extends StatelessWidget {
   final PreviewState state;
   final AnimationController clock;
 
+  void _showProps(BuildContext context) {
+    final controller = context.read<PreviewController>();
+    final names = state.currentGeneratedProps;
+    final messenger = ScaffoldMessenger.of(context);
+    if (names.isEmpty) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text('这个镜头没有可重画的道具')));
+      return;
+    }
+    controller.pause();
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(AppUi.pagePadding, 0, AppUi.pagePadding, 8),
+              child: Text('本镜道具', style: Theme.of(sheetContext).textTheme.titleMedium),
+            ),
+            for (final name in names)
+              ListTile(
+                title: Text(name),
+                subtitle: Text(switch (state.propRecords[name]?.status) {
+                  PropDrawingStatus.ready => '已生成',
+                  PropDrawingStatus.failed => '生成失败',
+                  null => '生成中',
+                }),
+                trailing: TextButton(
+                  onPressed: () {
+                    Navigator.of(sheetContext).pop();
+                    messenger
+                      ..hideCurrentSnackBar()
+                      ..showSnackBar(SnackBar(content: Text('正在重画「$name」')));
+                    controller.redraw(name);
+                  },
+                  child: const Text('重画'),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = context.read<PreviewController>();
     final shot = state.current!;
     final theme = Theme.of(context);
+    final propDrawings = state.propDrawings;
     return Column(
       children: [
         Expanded(
@@ -103,15 +153,20 @@ class _PreviewBody extends StatelessWidget {
             child: Center(
               child: AspectRatio(
                 aspectRatio: 9 / 16,
-                child: RepaintBoundary(
-                  child: AnimatedBuilder(
-                    animation: clock,
-                    builder: (context, _) => ShotFrame(
-                      shot: shot,
-                      position: state.index + 1,
-                      total: state.shots.length,
-                      progress: clock.value,
-                      showScene: state.showScene,
+                // 长按画面：暂停并列出本镜的生成道具，可以重画
+                child: GestureDetector(
+                  onLongPress: () => _showProps(context),
+                  child: RepaintBoundary(
+                    child: AnimatedBuilder(
+                      animation: clock,
+                      builder: (context, _) => ShotFrame(
+                        shot: shot,
+                        position: state.index + 1,
+                        total: state.shots.length,
+                        progress: clock.value,
+                        showScene: state.showScene,
+                        propDrawings: propDrawings,
+                      ),
                     ),
                   ),
                 ),
